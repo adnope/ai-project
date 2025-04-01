@@ -1,15 +1,21 @@
 #include "Position.hpp"
 #include "TranspositionTable.hpp"
-#include <cassert>
-#include <iostream>
+#include <vector>
 #include <utility>
 #include <climits>
+
+constexpr unsigned int log2(unsigned int n) 
+{
+	return n <= 1 ? 0 : log2(n/2)+1;
+}
 
 class Solver
 {
 private:
 	int columnOrder[Position::WIDTH];
-	TranspositionTable transTable;
+	TranspositionTable<Position::WIDTH *(Position::HEIGHT + 1),
+					   log2(Position::MAX_SCORE - Position::MIN_SCORE + 1) + 1,
+					   23> transTable;
 
 	int negamax(const Position &P, int alpha, int beta)
 	{
@@ -54,8 +60,8 @@ private:
 	}
 
 public:
-	Solver() : transTable(16777186)
-	{ // 16777186 prime = 128MB of transposition table
+	Solver()
+	{
 		reset();
 		for (int i = 0; i < Position::WIDTH; i++)
 			columnOrder[i] = Position::WIDTH / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2;

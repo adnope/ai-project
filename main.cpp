@@ -1,8 +1,6 @@
 #include "Position.hpp"
 #include "Solver.cpp"
-#include <iostream>
-#include <vector>
-#include <climits>
+
 #include <chrono>
 
 using namespace std::chrono;
@@ -55,19 +53,19 @@ int main(int argc, char const *argv[])
     {
         if (argv[i][0] == '-')
         {
-            if (argv[i][1] == 'a') // -s to calculate score of given position
+            if (argv[i][1] == 'a') // Show the score for each move the current player would make
             {
                 analyze = true;
             }
-            else if (argv[i][1] == 's') // -s to calculate score of given position
+            else if (argv[i][1] == 's') // Show the score of the current board (higher means red is winning)
             {
                 calculateScore = true;
             }
-            else if (argv[i][1] == 'f')
+            else if (argv[i][1] == 'f') // Show the best move to make for the current player
             {
                 findBestMove = true;
             }
-            else if (argv[i][1] == 't')
+            else if (argv[i][1] == 't') // Test mode, allow you to repeatedly input and see the score for each position
             {
                 testMode = true;
             }
