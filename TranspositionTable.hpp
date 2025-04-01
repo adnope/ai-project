@@ -5,26 +5,21 @@
 #include <cassert>
 #include <cstdint>
 
-/*
- * util functions to compute next prime at compile time
- */
-constexpr uint64_t med(uint64_t min, uint64_t max)
-{
-    return (min + max) / 2;
+constexpr bool is_prime(uint64_t n) {
+    if (n < 2) return false;
+    if (n % 2 == 0) return n == 2;
+    if (n % 3 == 0) return n == 3;
+    for (uint64_t i = 5; i * i <= n; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0) return false;
+    }
+    return true;
 }
 
-constexpr bool has_factor(uint64_t n, uint64_t min, uint64_t max)
-{
-    return min * min > n ? false : // do not search for factor above sqrt(n)
-               min + 1 >= max ? n % min == 0
-                              : has_factor(n, min, med(min, max)) || has_factor(n, med(min, max), max);
-}
-
-// return next prime number greater or equal to n.
-// n must be >= 2
-constexpr uint64_t next_prime(uint64_t n)
-{
-    return has_factor(n, 2, n) ? next_prime(n + 1) : n;
+constexpr uint64_t next_prime(uint64_t n) {
+    if (n <= 2) return 2;
+    if (n % 2 == 0) ++n;
+    while (!is_prime(n)) n += 2;
+    return n;
 }
 
 template <unsigned int key_size, unsigned int value_size, unsigned int log_size>

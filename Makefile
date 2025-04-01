@@ -3,7 +3,7 @@ CXXFLAGS = -Wall -Wextra -std=c++17
 
 TARGET = main
 
-all: clean $(TARGET)
+all: $(TARGET)
 
 $(TARGET): main.cpp
 	$(CXX) $(CXXFLAGS) -o $(TARGET) main.cpp
