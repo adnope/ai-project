@@ -1,3 +1,7 @@
+*.o
+*.exe
+*.out
+*.app
+
 .vscode/
-main
-main.exe
+solver

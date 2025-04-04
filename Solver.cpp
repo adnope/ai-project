@@ -1,81 +1,91 @@
-#include "Position.hpp"
-#include "TranspositionTable.hpp"
-#include <vector>
-#include <utility>
-#include <climits>
-
-constexpr unsigned int log2(unsigned int n) 
-{
-	return n <= 1 ? 0 : log2(n/2)+1;
-}
+#include <cassert>
+#include <chrono>
+#include <fstream>
+#include <iostream>
+#include "headers/TranspositionTable.hpp"
+#include "headers/Position.hpp"
 
 class Solver
 {
 private:
-	int columnOrder[Position::WIDTH];
-	TranspositionTable<Position::WIDTH *(Position::HEIGHT + 1),
-					   log2(Position::MAX_SCORE - Position::MIN_SCORE + 1) + 1,
-					   23> transTable;
+	unsigned long long nodeCount;
 
+	// Use a column order to set priority for exploring nodes (columns tend to affect the game more the more they are near the middle)
+	int columnOrder[Position::WIDTH];
+
+	TranspositionTable transTable;
+
+	/**
+	 * Reccursively score connect 4 position using negamax variant of alpha-beta algorithm.
+	 * @param: alpha and beta, the window [alpha, beta] is used to narrow down states whose values are within the window
+	 *
+	 * @return the exact score, an upper or lower bound score depending of the case:
+	 * - if actual score of position <= alpha then actual score <= return value <= alpha
+	 * - if actual score of position >= beta then beta <= return value <= actual score
+	 * - if alpha <= actual score <= beta then return value = actual score
+	 */
 	int negamax(const Position &P, int alpha, int beta)
 	{
 		assert(alpha < beta);
+		assert(!P.canWinNext());
 
-		if (P.nbMoves() == Position::WIDTH * Position::HEIGHT) // check for draw game
-			return 0;
+		nodeCount++;
 
-		for (int x = 0; x < Position::WIDTH; x++) // check if current player can win next move
-			if (P.canPlay(x) && P.isWinningMove(x))
-				return (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
+		uint64_t next = P.possibleNonLosingMoves();
+		if (next == 0)
+			return -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2; // opponent wins since there are no possbile non-losing move
 
-		int max = (Position::WIDTH * Position::HEIGHT - 1 - P.nbMoves()) / 2; // upper bound of our score as we cannot win immediately
-		if (int val = transTable.get(P.key()))
+		if (P.nbMoves() >= Position::WIDTH * Position::HEIGHT - 2)
+			return 0; // draw game
+
+		// min is used for narrowing down the window (min means the smallest number of moves needed for the opponent to win)
+		int min = -(Position::WIDTH * Position::HEIGHT - 2 - P.nbMoves()) / 2;
+		if (alpha < min)
+		{
+			alpha = min; // no need to explore nodes whose values smaller than min
+			if (alpha >= beta)
+				return alpha; // prune the exploration if the [alpha;beta] window is empty.
+		}
+
+		// max is the smallest number of moves needed for the current player to win, also used to narrow down window.
+		int max = (Position::WIDTH * Position::HEIGHT - 1 - P.nbMoves()) / 2;
+		if (int val = transTable.get(P.key())) // check if the current state is in transTable or not, if it is, retrieve the value
 			max = val + Position::MIN_SCORE - 1;
 
 		if (beta > max)
 		{
-			beta = max; // there is no need to keep beta above our max possible score.
+			beta = max; // no need to explore nodes whose values greater than max
 			if (alpha >= beta)
 				return beta; // prune the exploration if the [alpha;beta] window is empty.
 		}
 
-		for (int x = 0; x < Position::WIDTH; x++) // compute the score of all possible next move and keep the best one
-			if (P.canPlay(columnOrder[x]))
+		// Compute values of each column to see which is best to move
+		for (int x = 0; x < Position::WIDTH; x++)
+			if (next & Position::column_mask(columnOrder[x]))
 			{
 				Position P2(P);
-				P2.play(columnOrder[x]);				 // It's opponent turn in P2 position after current player plays x column.
-				int score = -negamax(P2, -beta, -alpha); // explore opponent's score within [-beta;-alpha] windows:
-														 // no need to have good precision for score better than beta (opponent's score worse than -beta)
-														 // no need to check for score worse than alpha (opponent's score worse better than -alpha)
+				P2.play(columnOrder[x]);
+				int score = -negamax(P2, -beta, -alpha); // Basically how negamax works, read the wiki
 
 				if (score >= beta)
-					return score; // prune the exploration if we find a possible move better than what we were looking for.
+					return score; // prune the search if we find a move better than the current best
 				if (score > alpha)
-					alpha = score; // reduce the [alpha;beta] window for next exploration, as we only
-								   // need to search for a position that is better than the best so far.
+					alpha = score; // reduce the [alpha;beta] window
 			}
 
-		transTable.put(P.key(), alpha - Position::MIN_SCORE + 1); // save the upper bound of the position
+		// save the upper bound of the position, minus MIN_SCORE and +1 to make sure the lowest value is 1
+		transTable.put(P.key(), alpha - Position::MIN_SCORE + 1);
 		return alpha;
 	}
 
 public:
-	Solver()
+	int solve(const Position &P)
 	{
-		reset();
-		for (int i = 0; i < Position::WIDTH; i++)
-			columnOrder[i] = Position::WIDTH / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2;
-	}
+		if (P.canWinNext()) // check if win in one move as the Negamax function does not support this case.
+			return (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
 
-	int solve_iterative_deepening(const Position &P, bool weak = false)
-	{
 		int min = -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2;
 		int max = (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
-		if (weak)
-		{
-			min = -1;
-			max = 1;
-		}
 
 		while (min < max)
 		{ // iteratively narrow the min-max exploration window
@@ -93,70 +103,149 @@ public:
 		return min;
 	}
 
-	int calculateScore(const Position &P)
+	unsigned int findBestMove(const Position &P)
 	{
-		int score = negamax(P, -Position::WIDTH * Position::HEIGHT / 2, Position::WIDTH * Position::HEIGHT / 2);
-		// int score = solve_iterative_deepening(P, true);
-		// std::cout << "Current board score: " << score << std::endl;
-		return score;
-	}
-
-	std::pair<int, int> findBestMove(const Position &P)
-	{
-		int best_score = INT_MIN;
-		int best_move = -1;
-
-		for (int col = 0; col < Position::WIDTH; col++)
+		int best_col;
+		int best_score = -100;
+		for (int col = 0; col < Position::WIDTH; ++col)
 		{
 			if (P.canPlay(col))
 			{
 				if (P.isWinningMove(col))
 				{
-					best_score = (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
-					return std::make_pair(col + 1, best_score);
+					return col;
 				}
-				else
+				Position P2(P);
+				P2.play(col);
+				int score = -solve(P2);
+				if (score > best_score)
 				{
-					Position P2(P);
-					P2.play(col);
-
-					int score = -negamax(P2, -Position::WIDTH * Position::HEIGHT / 2, Position::WIDTH * Position::HEIGHT / 2);
-
-					if (score > best_score)
-					{
-						best_score = score;
-						best_move = col;
-					}
+					best_score = score;
+					best_col = col;
 				}
 			}
 		}
-
-		// std::cout << "Best move: column " << best_move + 1 << ", move score: " << best_score << std::endl;
-		return std::make_pair(best_move + 1, best_score);
+		return best_col;
 	}
 
-	std::vector<int> analyzeAllMoves(const Position &P)
+	unsigned long long getNodeCount()
 	{
-		std::vector<int> scores(Position::WIDTH);
-		for (int col = 0; col < Position::WIDTH; col++)
-		{
-			if (P.canPlay(col))
-			{
-				if (P.isWinningMove(col))
-					scores[col] = (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
-				else
-				{
-					Position P2(P);
-					P2.play(col);
-					scores[col] = -negamax(P2, -Position::WIDTH * Position::HEIGHT / 2, Position::WIDTH * Position::HEIGHT / 2);
-				}
-			}
-		}
-		return scores;
+		return nodeCount;
 	}
 
 	void reset()
 	{
+		nodeCount = 0;
 		transTable.reset();
 	}
+
+	Solver() : nodeCount{0}, transTable(8388593)
+	{ // 8388593 prime = 64MB of transposition table
+		reset();
+		for (int i = 0; i < Position::WIDTH; i++)
+			columnOrder[i] = Position::WIDTH / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2;
+		// initialize the column exploration order, starting with center columns
+		// example for WIDTH=7: columnOrder = {3, 4, 2, 5, 1, 6, 0}
+	}
 };
+
+int runTest()
+{
+	Solver solver;
+	std::ifstream testStream("tests/begin_medium_test.txt");
+
+	if (!testStream)
+	{
+		std::cerr << "Cannot open test file.";
+		return 1;
+	}
+
+	std::string line;
+	int correct_score;
+
+	int l = 0;
+	while (testStream >> line && testStream >> correct_score)
+	{
+		Position P;
+		if (P.play(line) != line.size())
+		{
+			std::cerr << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << std::endl;
+		}
+		else
+		{
+			solver.reset();
+			auto start = std::chrono::high_resolution_clock::now();
+			unsigned int best_move = solver.findBestMove(P);
+			auto end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double, std::milli> duration = end - start;
+
+			int score = solver.solve(P);
+
+			std::cout << line
+					  << ": " << P.nbMoves() << " moves, "
+					  << "Score: " << score
+					  << ", Nodes: " << solver.getNodeCount()
+					  << ", Time: " << duration.count()
+					  << " ms, Best move: column " << best_move + 1 << " - ";
+
+			if (score == correct_score)
+				std::cout << "[Correct!]" << std::endl;
+			else
+				std::cout << "[INCORRECT]";
+		}
+		l++;
+	}
+
+	return 0;
+}
+
+void findMoveAndCalculateScore() {
+	Solver solver;
+
+	std::string line;
+
+	for (int l = 1; std::getline(std::cin, line); l++)
+	{
+		Position P;
+		if (P.play(line) != line.size())
+		{
+			std::cerr << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << std::endl;
+		}
+		else
+		{
+			solver.reset();
+			auto start = std::chrono::high_resolution_clock::now();
+			unsigned int best_move = solver.findBestMove(P);
+			int score = solver.solve(P);
+			auto end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double, std::milli> duration = end - start;
+
+			std::cout << line
+					  << ": " << P.nbMoves() << " moves, "
+					  << "Score: " << score
+					  << ", Nodes: " << solver.getNodeCount()
+					  << ", Time: " << duration.count()
+					  << " ms, Best move: column " << best_move + 1 << "\n";
+		}
+	}
+}
+
+int main(int argc, char **argv)
+{
+	if (argc > 1 && argv[1][0] == '-')
+	{
+		switch (argv[1][1])
+		{
+			case 't':
+				runTest();
+				break;
+			case 'f':
+				findMoveAndCalculateScore();
+				break;
+			default:
+				findMoveAndCalculateScore();
+		}
+	}
+
+	return 0;
+}
