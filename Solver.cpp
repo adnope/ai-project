@@ -4,6 +4,8 @@
 #include <iostream>
 #include "headers/TranspositionTable.hpp"
 #include "headers/Position.hpp"
+#include <vector>
+#include <string>
 
 class Solver
 {
@@ -230,6 +232,99 @@ void findMoveAndCalculateScore() {
 	}
 }
 
+std::string board_to_move_sequence(const std::vector<std::vector<int>>& board) {
+    std::vector<int> move_seq;
+    std::vector<std::vector<int>> curr_board(6, std::vector<int>(7, 0));
+    int curr_player = 1;
+
+    // Iterate until the current board matches the target board
+    while (curr_board != board) {
+        bool move_found = false;
+        for (int col = 0; col < 7; ++col) {
+            // Find lowest empty row in the column
+            int row = 5;
+            while (row >= 0 && curr_board[row][col] != 0) {
+                --row;
+            }
+
+            // If the column not full
+            if (row >= 0) {
+                // Check if placing a piece here would match the target board
+                if (board[row][col] == curr_player) {
+                    // Check if the move is valid (all spaces below are filled)
+                    bool valid_move = true;
+                    for (int r = row + 1; r < 6; ++r) {
+                        if (curr_board[r][col] == 0) {
+                            valid_move = false;
+                            break;
+                        }
+                    }
+
+                    if (valid_move) {
+                        curr_board[row][col] = curr_player;
+                        move_seq.push_back(col + 1);
+                        curr_player = (curr_player == 1) ? 2 : 1;
+                        move_found = true;
+                        break; // Move found, proceed to the next iteration
+                    }
+                }
+            }
+        }
+        
+        if (!move_found) {
+            return "";
+        }
+    }
+
+    std::string res;
+    for (int move : move_seq) {
+        res += std::to_string(move);
+    }
+    return res;
+}
+
+void testBoardInput() {
+    std::vector<std::vector<int>> board(6, std::vector<int>(7, 0));
+    
+    std::cout << "Enter the Connect 4 board state (6 rows, 7 columns)\n" 
+			  << "Use 0 for empty, 1 for player 1, 2 for player 2\n" 
+			<< "Enter each row from top to bottom:\n";
+    
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 7; j++) {
+            std::cin >> board[i][j];
+            if (board[i][j] < 0 || board[i][j] > 2) {
+                std::cout << "Invalid input\n";
+                return;
+            }
+        }
+    }
+    
+
+    std::string sequence = board_to_move_sequence(board);
+    
+
+    std::cout << "Move sequence: " << sequence << "\n";
+    
+
+    Position P;
+    if (P.play(sequence) != sequence.size()) {
+        std::cout << "Invalid sequence generated!\n";
+    } else {
+        Solver solver;
+        solver.reset();
+        unsigned int best_move = solver.findBestMove(P);
+        int score = solver.solve(P);
+        
+        std::cout << "Current position analysis:\n";
+        std::cout << "Best move: column " << best_move + 1 << "\n";
+        std::cout << "Position score: " << score << "\n";
+    }
+}
+
+
+
+
 int main(int argc, char **argv)
 {
 	if (argc > 1 && argv[1][0] == '-')
@@ -242,9 +337,14 @@ int main(int argc, char **argv)
 			case 'f':
 				findMoveAndCalculateScore();
 				break;
+			case 'b':
+				testBoardInput();
+				break;
 			default:
 				findMoveAndCalculateScore();
 		}
+	} else {
+		testBoardInput();
 	}
 
 	return 0;
