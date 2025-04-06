@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <assert.h>
+#include <string>
 
 /**
  * A class storing a Connect 4 position.
@@ -79,7 +81,7 @@ public:
 		return (mask & top_mask(col)) == 0;
 	}
 
-	void play(int col)
+	void playcol(int col)
 	{
 		current_position ^= mask;
 		mask |= mask + bottom_mask_col(col);
@@ -93,7 +95,7 @@ public:
 			int col = seq[i] - '1';
 			if (col < 0 || col >= Position::WIDTH || !canPlay(col) || isWinningMove(col))
 				return i; // invalid move
-			play(col);
+			playcol(col);
 		}
 		return seq.size();
 	}

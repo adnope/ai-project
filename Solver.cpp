@@ -2,8 +2,11 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include "headers/TranspositionTable.hpp"
 #include "headers/Position.hpp"
+#include "headers/OpeningBook.hpp"
+
 
 class Solver
 {
@@ -13,7 +16,7 @@ private:
 	// Use a column order to set priority for exploring nodes (columns tend to affect the game more the more they are near the middle)
 	int columnOrder[Position::WIDTH];
 
-	TranspositionTable transTable;
+	
 
 	/**
 	 * Reccursively score connect 4 position using negamax variant of alpha-beta algorithm.
@@ -64,7 +67,7 @@ private:
 			if (next & Position::column_mask(columnOrder[x]))
 			{
 				Position P2(P);
-				P2.play(columnOrder[x]);
+				P2.playcol(columnOrder[x]);
 				int score = -negamax(P2, -beta, -alpha); // Basically how negamax works, read the wiki
 
 				if (score >= beta)
@@ -79,6 +82,7 @@ private:
 	}
 
 public:
+	TranspositionTable transTable;
 	int solve(const Position &P)
 	{
 		if (P.canWinNext()) // check if win in one move as the Negamax function does not support this case.
@@ -116,7 +120,7 @@ public:
 					return col;
 				}
 				Position P2(P);
-				P2.play(col);
+				P2.playcol(col);
 				int score = -solve(P2);
 				if (score > best_score)
 				{
@@ -169,7 +173,7 @@ int runTest()
 		Position P;
 		if (P.play(line) != line.size())
 		{
-			std::cerr << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << std::endl;
+			std::cout << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << std::endl;
 		}
 		else
 		{
@@ -201,19 +205,30 @@ int runTest()
 
 void findMoveAndCalculateScore() {
 	Solver solver;
+	OpeningBook openingBook(7, 6, 14, &solver.transTable); 
+	openingBook.load("7x6.book");
 
 	std::string line;
 
 	for (int l = 1; std::getline(std::cin, line); l++)
 	{
 		Position P;
+		
 		if (P.play(line) != line.size())
 		{
 			std::cerr << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << std::endl;
 		}
 		else
 		{
-			solver.reset();
+			if (line.length() < 10) {
+				uint8_t bestMove = (openingBook.getBestMove(solver.transTable.encodeMoves(line)));
+				if (bestMove != OpeningBook::NO_MOVE) {
+					std::cout << "Key " << line << " best move " <<  (int) (bestMove) << std::endl;
+				} else {
+					std::cout << "not find " << line << std::endl;
+				}
+			} else {
+				solver.reset();
 			auto start = std::chrono::high_resolution_clock::now();
 			unsigned int best_move = solver.findBestMove(P);
 			int score = solver.solve(P);
@@ -226,6 +241,7 @@ void findMoveAndCalculateScore() {
 					  << ", Nodes: " << solver.getNodeCount()
 					  << ", Time: " << duration.count()
 					  << " ms, Best move: column " << best_move + 1 << "\n";
+			}
 		}
 	}
 }
