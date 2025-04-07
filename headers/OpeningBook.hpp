@@ -1,5 +1,4 @@
-#ifndef OPENING_BOOK_HPP
-#define OPENING_BOOK_HPP
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -91,5 +90,3 @@ public:
         return T->get(key) != 0;
     }
 };
-
-#endif

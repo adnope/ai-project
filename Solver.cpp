@@ -6,7 +6,7 @@
 #include "headers/TranspositionTable.hpp"
 #include "headers/Position.hpp"
 #include "headers/OpeningBook.hpp"
-
+#include "headers/MoveSorter.hpp"
 
 class Solver
 {
@@ -15,8 +15,6 @@ private:
 
 	// Use a column order to set priority for exploring nodes (columns tend to affect the game more the more they are near the middle)
 	int columnOrder[Position::WIDTH];
-
-	
 
 	/**
 	 * Reccursively score connect 4 position using negamax variant of alpha-beta algorithm.
@@ -62,19 +60,25 @@ private:
 				return beta; // prune the exploration if the [alpha;beta] window is empty.
 		}
 
-		// Compute values of each column to see which is best to move
-		for (int x = 0; x < Position::WIDTH; x++)
-			if (next & Position::column_mask(columnOrder[x]))
-			{
-				Position P2(P);
-				P2.playcol(columnOrder[x]);
-				int score = -negamax(P2, -beta, -alpha); // Basically how negamax works, read the wiki
+		MoveSorter moves;
+		for (int i = Position::WIDTH; i--;)
+			if (uint64_t move = next & Position::column_mask(columnOrder[i]))
+				moves.add(move, P.moveScore(move));
 
-				if (score >= beta)
-					return score; // prune the search if we find a move better than the current best
-				if (score > alpha)
-					alpha = score; // reduce the [alpha;beta] window
-			}
+		while (uint64_t next = moves.getNext())
+		{
+			Position P2(P);
+			P2.play(next);							 // It's opponent turn in P2 position after current player plays x column.
+			int score = -negamax(P2, -beta, -alpha); // explore opponent's score within [-beta;-alpha] windows:
+			// no need to have good precision for score better than beta (opponent's score worse than -beta)
+			// no need to check for score worse than alpha (opponent's score worse better than -alpha)
+
+			if (score >= beta)
+				return score; // prune the exploration if we find a possible move better than what we were looking for.
+			if (score > alpha)
+				alpha = score; // reduce the [alpha;beta] window for next exploration, as we only
+							   // need to search for a position that is better than the best so far.
+		}
 
 		// save the upper bound of the position, minus MIN_SCORE and +1 to make sure the lowest value is 1
 		transTable.put(P.key(), alpha - Position::MIN_SCORE + 1);
@@ -83,6 +87,7 @@ private:
 
 public:
 	TranspositionTable transTable;
+
 	int solve(const Position &P)
 	{
 		if (P.canWinNext()) // check if win in one move as the Negamax function does not support this case.
@@ -120,7 +125,7 @@ public:
 					return col;
 				}
 				Position P2(P);
-				P2.playcol(col);
+				P2.playCol(col);
 				int score = -solve(P2);
 				if (score > best_score)
 				{
@@ -203,9 +208,10 @@ int runTest()
 	return 0;
 }
 
-void findMoveAndCalculateScore() {
+void findMoveAndCalculateScore()
+{
 	Solver solver;
-	OpeningBook openingBook(7, 6, 14, &solver.transTable); 
+	OpeningBook openingBook(7, 6, 14, &solver.transTable);
 	openingBook.load("7x6.book");
 
 	std::string line;
@@ -213,34 +219,40 @@ void findMoveAndCalculateScore() {
 	for (int l = 1; std::getline(std::cin, line); l++)
 	{
 		Position P;
-		
+
 		if (P.play(line) != line.size())
 		{
 			std::cerr << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << std::endl;
 		}
 		else
 		{
-			if (line.length() < 10) {
+			if (line.length() < 10)
+			{
 				uint8_t bestMove = (openingBook.getBestMove(solver.transTable.encodeMoves(line)));
-				if (bestMove != OpeningBook::NO_MOVE) {
-					std::cout << "Key " << line << " best move " <<  (int) (bestMove) << std::endl;
-				} else {
+				if (bestMove != OpeningBook::NO_MOVE)
+				{
+					std::cout << "Key " << line << " best move " << (int)(bestMove) << std::endl;
+				}
+				else
+				{
 					std::cout << "not find " << line << std::endl;
 				}
-			} else {
+			}
+			else
+			{
 				solver.reset();
-			auto start = std::chrono::high_resolution_clock::now();
-			unsigned int best_move = solver.findBestMove(P);
-			int score = solver.solve(P);
-			auto end = std::chrono::high_resolution_clock::now();
-			std::chrono::duration<double, std::milli> duration = end - start;
+				auto start = std::chrono::high_resolution_clock::now();
+				unsigned int best_move = solver.findBestMove(P);
+				int score = solver.solve(P);
+				auto end = std::chrono::high_resolution_clock::now();
+				std::chrono::duration<double, std::milli> duration = end - start;
 
-			std::cout << line
-					  << ": " << P.nbMoves() << " moves, "
-					  << "Score: " << score
-					  << ", Nodes: " << solver.getNodeCount()
-					  << ", Time: " << duration.count()
-					  << " ms, Best move: column " << best_move + 1 << "\n";
+				std::cout << line
+						  << ": " << P.nbMoves() << " moves, "
+						  << "Score: " << score
+						  << ", Nodes: " << solver.getNodeCount()
+						  << ", Time: " << duration.count()
+						  << " ms, Best move: column " << best_move + 1 << "\n";
 			}
 		}
 	}
@@ -252,14 +264,14 @@ int main(int argc, char **argv)
 	{
 		switch (argv[1][1])
 		{
-			case 't':
-				runTest();
-				break;
-			case 'f':
-				findMoveAndCalculateScore();
-				break;
-			default:
-				findMoveAndCalculateScore();
+		case 't':
+			runTest();
+			break;
+		case 'f':
+			findMoveAndCalculateScore();
+			break;
+		default:
+			findMoveAndCalculateScore();
 		}
 	}
 

@@ -81,11 +81,16 @@ public:
 		return (mask & top_mask(col)) == 0;
 	}
 
-	void playcol(int col)
+	void play(uint64_t move)
 	{
 		current_position ^= mask;
-		mask |= mask + bottom_mask_col(col);
+		mask |= move;
 		moves++;
+	}
+
+	void playCol(int col)
+	{
+		play((mask + bottom_mask_col(col)) & column_mask(col));
 	}
 
 	unsigned int play(std::string seq)
@@ -95,7 +100,7 @@ public:
 			int col = seq[i] - '1';
 			if (col < 0 || col >= Position::WIDTH || !canPlay(col) || isWinningMove(col))
 				return i; // invalid move
-			playcol(col);
+			playCol(col);
 		}
 		return seq.size();
 	}
@@ -134,6 +139,11 @@ public:
 				possible_mask = forced_moves; // enforce to play the single forced move
 		}
 		return possible_mask & ~(opponent_win >> 1); // avoid to play below an opponent winning spot
+	}
+
+	int moveScore(uint64_t move) const
+	{
+		return countSetBits(compute_winning_position(current_position | move, mask));
 	}
 
 	Position() : current_position{0}, mask{0}, moves{0} {}
@@ -203,5 +213,13 @@ private:
 		r |= p & (position >> 3 * (HEIGHT + 2));
 
 		return r & (board_mask ^ mask);
+	}
+
+	static unsigned int countSetBits(uint64_t num)
+	{
+		unsigned int c = 0;
+		for (c = 0; num; c++)
+			num &= num - 1;
+		return c;
 	}
 };
