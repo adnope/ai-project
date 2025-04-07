@@ -20,7 +20,7 @@ make clean
 make run
 ```
 
-Additionally, you can run ```make run ARGS="arg"``` to launch the solver with diffrent modes (remove the arguments with -t or -f)
+Additionally, you can run ```make run ARGS="<arg>"``` to launch the solver with diffrent modes (replace the <arg> with -t or -f)
 
 The solver currently has 2 modes:
 
