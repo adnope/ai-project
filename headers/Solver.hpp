@@ -64,16 +64,13 @@ private:
 		while (uint64_t next = moves.getNext())
 		{
 			Position P2(P);
-			P2.play(next);							 // It's opponent turn in P2 position after current player plays x column.
-			int score = -negamax(P2, -beta, -alpha); // explore opponent's score within [-beta;-alpha] windows:
-			// no need to have good precision for score better than beta (opponent's score worse than -beta)
-			// no need to check for score worse than alpha (opponent's score worse better than -alpha)
+			P2.play(next);
+			int score = -negamax(P2, -beta, -alpha);
 
 			if (score >= beta)
-				return score; // prune the exploration if we find a possible move better than what we were looking for.
+				return score; // prune the exploration
 			if (score > alpha)
-				alpha = score; // reduce the [alpha;beta] window for next exploration, as we only
-							   // need to search for a position that is better than the best so far.
+				alpha = score; // reduce the [alpha;beta] window
 		}
 
 		// save the upper bound of the position, minus MIN_SCORE and +1 to make sure the lowest value is 1
@@ -145,7 +142,7 @@ public:
 	}
 
 	Solver() : nodeCount{0}, transTable(8388593)
-	{ // 8388593 prime = 64MB of transposition table
+	{
 		reset();
 		for (int i = 0; i < Position::WIDTH; i++)
 			columnOrder[i] = Position::WIDTH / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2;

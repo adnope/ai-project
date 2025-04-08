@@ -3,56 +3,6 @@
 #include <cstdint>
 #include <cassert>
 
-/**
- * A class storing a Connect 4 position.
- * Functions are relative to the current player to play.
- * Position containing aligment are not supported by this class.
- *
- * A binary bitboard representationis used.
- * Each column is encoded on HEIGH+1 bits.
- *
- * Example of bit order to encode for a 7x6 board
- * .  .  .  .  .  .  .
- * 5 12 19 26 33 40 47
- * 4 11 18 25 32 39 46
- * 3 10 17 24 31 38 45
- * 2  9 16 23 30 37 44
- * 1  8 15 22 29 36 43
- * 0  7 14 21 28 35 42
- *
- * Position is stored as
- * - a bitboard "mask" with 1 on any color stones
- * - a bitboard "current_player" with 1 on stones of current player
- *
- * "current_player" bitboard can be transformed into a compact and non ambiguous key
- * by adding an extra bit on top of the last non empty cell of each column.
- * This allow to identify all the empty cells whithout needing "mask" bitboard
- *
- * current_player "x" = 1, opponent "o" = 0
- * board     position  mask      key       bottom
- *           0000000   0000000   0000000   0000000
- * .......   0000000   0000000   0001000   0000000
- * ...o...   0000000   0001000   0010000   0000000
- * ..xx...   0011000   0011000   0011000   0000000
- * ..ox...   0001000   0011000   0001100   0000000
- * ..oox..   0000100   0011100   0000110   0000000
- * ..oxxo.   0001100   0011110   1101101   1111111
- *
- * current_player "o" = 1, opponent "x" = 0
- * board     position  mask      key       bottom
- *           0000000   0000000   0001000   0000000
- * ...x...   0000000   0001000   0000000   0000000
- * ...o...   0001000   0001000   0011000   0000000
- * ..xx...   0000000   0011000   0000000   0000000
- * ..ox...   0010000   0011000   0010100   0000000
- * ..oox..   0011000   0011100   0011010   0000000
- * ..oxxo.   0010010   0011110   1110011   1111111
- *
- * key is an unique representation of a board key = position + mask + bottom
- * in practice, as bottom is constant, key = position + mask is also a
- * non-ambigous representation of the position.
- */
-
 constexpr static uint64_t bottom(int width, int height)
 {
 	return width == 0 ? 0 : bottom(width - 1, height) | 1LL << (width - 1) * (height + 1);
@@ -150,7 +100,7 @@ public:
 private:
 	uint64_t current_position;
 	uint64_t mask;
-	unsigned int moves; // number of moves played since the beinning of the game.
+	unsigned int moves;
 
 	const static uint64_t bottom_mask_full = bottom(WIDTH, HEIGHT);
 	const static uint64_t board_mask = bottom_mask_full * ((1LL << HEIGHT) - 1);

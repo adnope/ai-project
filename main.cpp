@@ -6,7 +6,7 @@
 int runTest()
 {
 	Solver solver;
-	std::ifstream testStream("tests/begin_medium_test.txt");
+	std::ifstream testStream("tests/begin_hard_test.txt");
 
 	if (!testStream)
 	{
