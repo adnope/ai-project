@@ -1,8 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <assert.h>
-#include <string>
+#include <cassert>
 
 /**
  * A class storing a Connect 4 position.
