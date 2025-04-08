@@ -31,7 +31,7 @@ private:
 		assert(!P.canWinNext());
 
 		nodeCount++;
-
+		
 		uint64_t next = P.possibleNonLosingMoves();
 		if (next == 0)
 			return -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2; // opponent wins since there are no possbile non-losing move
@@ -258,21 +258,166 @@ void findMoveAndCalculateScore()
 	}
 }
 
+void printConnectFourBoard(const std::string &moves)
+{
+	const int ROWS = Position::HEIGHT;
+	const int COLS = Position::WIDTH;
+	char board[ROWS][COLS] = {0};
+
+	// Initialize empty board
+	for (int i = 0; i < ROWS; i++)
+	{
+		for (int j = 0; j < COLS; j++)
+		{
+			board[i][j] = '.';
+		}
+	}
+
+	// Process each move
+	for (size_t i = 0; i < moves.size(); i++)
+	{
+		int col = moves[i] - '1'; // Convert char to 0-based column index
+		if (col < 0 || col >= COLS)
+		{
+			std::cerr << "Invalid column: " << moves[i] << std::endl;
+			return;
+		}
+
+		// Find the first empty row in the column
+		int row = ROWS - 1;
+		while (row >= 0 && board[row][col] != '.')
+		{
+			row--;
+		}
+
+		if (row < 0)
+		{
+			std::cerr << "Column " << col + 1 << " is already full!" << std::endl;
+			return;
+		}
+
+		// Place the piece (alternate between 'R' and 'Y')
+		board[row][col] = (i % 2 == 0) ? 'x' : 'o';
+	}
+
+	// Print the board
+	for (int i = 0; i < ROWS; i++)
+	{
+		std::cout << "|";
+		for (int j = 0; j < COLS; j++)
+		{
+			std::cout << board[i][j] << "|";
+		}
+		std::cout << std::endl;
+	}
+	
+	// Print column numbers
+	std::cout << " ";
+	for (int j = 1; j <= COLS; j++)
+	{
+		std::cout << j << " ";
+	}
+	std::cout << std::endl;
+}
+
+int startGame()
+{
+	Solver solver;
+
+	std::string sequence = "444433323556";
+	Position P;
+	P.play(sequence);
+
+	std::cout << "Choose your side:\n"
+			  << "[1]: Red\n"
+			  << "[2]: Yellow\n"
+			  << "Enter your choice: ";
+
+	int choice;
+	while (std::cin >> choice) {
+		if (choice == 1)
+		{
+			break;
+		}
+		else if (choice == 2)
+		{
+			P.playCol(solver.findBestMove(P));
+			break;
+		}
+		else
+		{
+			std::cout << "Invalid choice\n"
+					  << "Enter your choice: ";
+		}
+	}
+	
+	std::cout << "The game has started!\n";
+
+	int player_move;
+	while (1)
+	{
+		printConnectFourBoard(sequence);
+		std::cout << "Enter your move: column: ";
+		std::cin >> player_move;
+
+		while (player_move < 1 || player_move > Position::WIDTH) {
+			std::cout << "Invalid move\nEnter your move: ";
+			std::cin >> player_move;
+		}
+
+		if (P.isWinningMove(player_move - 1))
+		{
+			sequence += std::to_string(player_move);
+			printConnectFourBoard(sequence);
+			std::cout << "You win!\n";
+			break;
+		}
+
+		sequence += std::to_string(player_move);
+		P.playCol(player_move - 1);
+
+		int ai_move = solver.findBestMove(P);
+		if (P.isWinningMove(ai_move))
+		{
+			std::cout << "Bot has played: column " << ai_move + 1 << std::endl;
+			sequence += std::to_string(ai_move + 1);
+			printConnectFourBoard(sequence);
+			std::cout << "You lose!\n";
+			break;
+		}
+		P.playCol(ai_move);
+		sequence += std::to_string(ai_move + 1);
+		std::cout << "Bot has played: column " << ai_move + 1<< std::endl;
+	}
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
-	if (argc > 1 && argv[1][0] == '-')
+	if (argc > 1)
 	{
-		switch (argv[1][1])
+		if (strcmp(argv[1], "-t") == 0 || strcmp(argv[1], "--test") == 0)
 		{
-		case 't':
 			runTest();
-			break;
-		case 'f':
-			findMoveAndCalculateScore();
-			break;
-		default:
+		}
+		else if (strcmp(argv[1], "-f") == 0 || strcmp(argv[1], "--find_move") == 0)
+		{
 			findMoveAndCalculateScore();
 		}
+		else if (strcmp(argv[1], "-p") == 0 || strcmp(argv[1], "--play") == 0)
+		{
+			startGame();
+		}
+		else
+		{
+			std::cerr << "Argument not found.\n";
+			return 1;
+		}
+	}
+	else
+	{
+		findMoveAndCalculateScore();
 	}
 
 	return 0;
