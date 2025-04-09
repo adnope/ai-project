@@ -78,6 +78,7 @@ public:
 		return sizeof(value_t);
 	}
 
+<<<<<<< Updated upstream
 	uint64_t encodeMoves(const std::string &moves) const
 	{
 		uint64_t key = 0;

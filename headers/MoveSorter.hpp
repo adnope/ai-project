@@ -1,6 +1,6 @@
 #pragma once
 
-#include "position.hpp"
+#include "Position.hpp"
 
 /**
  * A class to predetermine the best column to explore for the searching algorithm.

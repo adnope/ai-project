@@ -77,7 +77,7 @@ private:
 		transTable.put(P.key(), alpha - Position::MIN_SCORE + 1);
 		return alpha;
 	}
-
+	
 public:
 	TranspositionTable transTable;
 

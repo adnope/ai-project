@@ -39,7 +39,7 @@ public:
             uint64_t key = T->getKeys()[i];
             uint8_t move = T->get(key);
 
-            if (move != 0 && move < Position::WIDTH) {
+            if (move != 0) {
                 // Write lower 7 bytes of key
                 for (int j = 0; j < 7; ++j) {
                     uint8_t byte = (key >> (8 * j)) & 0xFF;
@@ -71,10 +71,8 @@ public:
             }
 
             uint8_t move = buf[7];
-            if (move < Position::WIDTH) {
-                T->put(key, move);
-                ++loaded;
-            }
+            T->put(key, move);
+            ++loaded;
         }
 
         ifs.close();

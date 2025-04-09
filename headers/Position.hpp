@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cassert>
+#include <string>
 
 constexpr static uint64_t bottom(int width, int height)
 {

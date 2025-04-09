@@ -114,8 +114,8 @@ void generate_opening_book() {
 }
 
 int main(int argc, char** argv) {
-  for (int i = 1; i <= 10; i++) {
-    generateAllMoves(i);
-  }
+//   for (int i = 1; i <= 10; i++) {
+//     generateAllMoves(i);
+//   }
   generate_opening_book();
 }
