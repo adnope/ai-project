@@ -80,33 +80,32 @@ void generateAllMoves(int length) {
 }
 
 void generate_opening_book() {
-  static constexpr int BOOK_SIZE = 27; // store 2^BOOK_SIZE positions in the book
-  static constexpr int DEPTH = 14;     // max depth of every position to be stored
-  static constexpr double LOG_3 = 1.58496250072; // log2(3)
+  static constexpr int BOOK_SIZE = 27; 
+  static constexpr double LOG_3 = 1.58496250072; 
   TranspositionTable* table = new TranspositionTable(1<<BOOK_SIZE);
 
   long long count = 1;
   for(std::string line; getline(std::cin, line); count++) {
-    if(line.length() == 0) break; // empty line = end of input
+    if(line.length() == 0) break; 
     std::istringstream iss(line);
     std::string moves;
-    getline(iss, moves, ' '); // read position before first space character
+    getline(iss, moves, ' '); 
     int score;
     iss >> score;
 
     Position P;
     if(iss.fail() || !iss.eof()
         || P.play(moves) != moves.length()
-        || score < Position::MIN_SCORE || score > Position::MAX_SCORE) {  // a valid line is a position a space and a valid score
+        || score < Position::MIN_SCORE || score > Position::MAX_SCORE) { 
       std::cerr << "Invalid line (line ignored): " << line << std::endl;
       continue;
     }
     
-    table->put(table->encodeMoves(moves), score - Position::MIN_SCORE + 1);
+    table->put(P.key3(), score - Position::MIN_SCORE + 1);
     if(count % 1000000 == 0) std::cerr << count << std::endl;
   }  
 
-  OpeningBook book{Position::WIDTH, Position::HEIGHT, DEPTH, table};
+  OpeningBook book{Position::WIDTH, Position::HEIGHT, table};
 
   std::ostringstream book_file;
   book_file << Position::WIDTH << "x" << Position::HEIGHT << ".book";
