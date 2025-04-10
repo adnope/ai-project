@@ -1,56 +1,8 @@
 #pragma once
 
 #include <cstdint>
-
-/**
- * A class storing a Connect 4 position.
- * Functions are relative to the current player to play.
- * Position containing aligment are not supported by this class.
- *
- * A binary bitboard representationis used.
- * Each column is encoded on HEIGH+1 bits.
- *
- * Example of bit order to encode for a 7x6 board
- * .  .  .  .  .  .  .
- * 5 12 19 26 33 40 47
- * 4 11 18 25 32 39 46
- * 3 10 17 24 31 38 45
- * 2  9 16 23 30 37 44
- * 1  8 15 22 29 36 43
- * 0  7 14 21 28 35 42
- *
- * Position is stored as
- * - a bitboard "mask" with 1 on any color stones
- * - a bitboard "current_player" with 1 on stones of current player
- *
- * "current_player" bitboard can be transformed into a compact and non ambiguous key
- * by adding an extra bit on top of the last non empty cell of each column.
- * This allow to identify all the empty cells whithout needing "mask" bitboard
- *
- * current_player "x" = 1, opponent "o" = 0
- * board     position  mask      key       bottom
- *           0000000   0000000   0000000   0000000
- * .......   0000000   0000000   0001000   0000000
- * ...o...   0000000   0001000   0010000   0000000
- * ..xx...   0011000   0011000   0011000   0000000
- * ..ox...   0001000   0011000   0001100   0000000
- * ..oox..   0000100   0011100   0000110   0000000
- * ..oxxo.   0001100   0011110   1101101   1111111
- *
- * current_player "o" = 1, opponent "x" = 0
- * board     position  mask      key       bottom
- *           0000000   0000000   0001000   0000000
- * ...x...   0000000   0001000   0000000   0000000
- * ...o...   0001000   0001000   0011000   0000000
- * ..xx...   0000000   0011000   0000000   0000000
- * ..ox...   0010000   0011000   0010100   0000000
- * ..oox..   0011000   0011100   0011010   0000000
- * ..oxxo.   0010010   0011110   1110011   1111111
- *
- * key is an unique representation of a board key = position + mask + bottom
- * in practice, as bottom is constant, key = position + mask is also a
- * non-ambigous representation of the position.
- */
+#include <cassert>
+#include <string>
 
 constexpr static uint64_t bottom(int width, int height)
 {
@@ -79,11 +31,16 @@ public:
 		return (mask & top_mask(col)) == 0;
 	}
 
-	void play(int col)
+	void play(uint64_t move)
 	{
 		current_position ^= mask;
-		mask |= mask + bottom_mask_col(col);
+		mask |= move;
 		moves++;
+	}
+
+	void playCol(int col)
+	{
+		play((mask + bottom_mask_col(col)) & column_mask(col));
 	}
 
 	unsigned int play(std::string seq)
@@ -93,7 +50,7 @@ public:
 			int col = seq[i] - '1';
 			if (col < 0 || col >= Position::WIDTH || !canPlay(col) || isWinningMove(col))
 				return i; // invalid move
-			play(col);
+			playCol(col);
 		}
 		return seq.size();
 	}
@@ -134,12 +91,40 @@ public:
 		return possible_mask & ~(opponent_win >> 1); // avoid to play below an opponent winning spot
 	}
 
+	int moveScore(uint64_t move) const
+	{
+		return countSetBits(compute_winning_position(current_position | move, mask));
+	}
+
+	uint64_t key3() const 
+	{
+		uint64_t key_forward = 0;
+		for(int i = 0; i < Position::WIDTH; i++)
+			partialKey3(key_forward, i);
+	
+		uint64_t key_reverse = 0;
+		for(int i = Position::WIDTH; i--; )
+			partialKey3(key_reverse, i);
+	
+		return key_forward < key_reverse ? key_forward / 3 : key_reverse / 3;
+	}
+	
+	void partialKey3(uint64_t &key, int col) const 
+	{
+		for(uint64_t pos = UINT64_C(1) << (col * (Position::HEIGHT + 1)); pos & mask; pos <<= 1) {
+		  key *= 3;
+		  if(pos & current_position) key += 1;
+		  else key += 2;
+		}
+		key *= 3;
+	}
+
 	Position() : current_position{0}, mask{0}, moves{0} {}
 
 private:
 	uint64_t current_position;
 	uint64_t mask;
-	unsigned int moves; // number of moves played since the beinning of the game.
+	unsigned int moves;
 
 	const static uint64_t bottom_mask_full = bottom(WIDTH, HEIGHT);
 	const static uint64_t board_mask = bottom_mask_full * ((1LL << HEIGHT) - 1);
@@ -201,5 +186,13 @@ private:
 		r |= p & (position >> 3 * (HEIGHT + 2));
 
 		return r & (board_mask ^ mask);
+	}
+
+	static unsigned int countSetBits(uint64_t num)
+	{
+		unsigned int c = 0;
+		for (c = 0; num; c++)
+			num &= num - 1;
+		return c;
 	}
 };

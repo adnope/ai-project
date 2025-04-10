@@ -1,6 +1,6 @@
 # Connect 4 game solver - an AI project for UET INT3401E
 
-## Launch instructions:
+## Compile instructions:
 
 ### Compile executable (solver):
 
@@ -20,16 +20,24 @@ make clean
 make run
 ```
 
-Additionally, you can run ```make run ARGS="arg"``` to launch the solver with diffrent modes (remove the arguments with -t or -f)
+Additionally, you can run ```make run ARGS="<arg>"``` to launch the solver with diffrent modes (replace the ```<arg>``` with -t or -f)
 
 The solver currently has 2 modes:
 
-- (Default mode: -f): Find the best move and calculate the score: It prints out the best move to make and the score of the current game position. Additionally, it also prints the number of nodes explored, the number of moves on the board, and the time it takes to find the best move.
+- (Default mode: -f, --find_move): Find the best move and calculate the score: It prints out the best move to make and the score of the current game position. Additionally, it also prints the number of nodes explored, the number of moves on the board, and the time it takes to find the best move.
 
-- -t: Run the solver with the test provided in /tests. You can modify the runTest() function in the solver main function to run other tests.
+- (Test mode) -t, --test: Run the solver with the test provided in ```/tests```. You can modify the ```runTest()``` function in the solver main function to run other tests.
 
-- -b: Test board input mode: Allows you to input a Connect 4 board state manually and converts it to a move sequence. The board should be input row by row from top to bottom (7x6), using 0 for empty cells, 1 for player 1's pieces, and 2 for player 2's pieces.
+- (Play mode) -p, --play: Launch the game, the player could choose to be red or yellow, and the game will start with the AI as the opponent.
 
-- -s: Run sequence-to-board-to-sequence testing: Processes test cases from begin_medium_test.txt, converts move sequences to boards and back, and writes detailed results to results.txt including success rate and timing information.
+Alternatively, you can compile the solver first using ```make```, and run the executable with the corresponding argument. For example:
+```
+If you're on Windows:
+./solver.exe -f
+./solver.exe --find_move
 
-- -q: Test sequence-to-board conversion: Allows you to input a move sequence and see the resulting board state. The sequence should consist of column numbers (1-7).
+Or if you're on Linux:
+./solver --play
+./solver -t
+./solver --test
+```

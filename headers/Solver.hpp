@@ -1,11 +1,9 @@
-#include <cassert>
-#include <chrono>
-#include <fstream>
-#include <iostream>
-#include "headers/TranspositionTable.hpp"
-#include "headers/Position.hpp"
-#include <vector>
-#include <string>
+#pragma once
+
+#include "TranspositionTable.hpp"
+#include "Position.hpp"
+#include "MoveSorter.hpp"
+
 
 class Solver
 {
@@ -14,8 +12,6 @@ private:
 
 	// Use a column order to set priority for exploring nodes (columns tend to affect the game more the more they are near the middle)
 	int columnOrder[Position::WIDTH];
-
-	TranspositionTable transTable;
 
 	/**
 	 * Reccursively score connect 4 position using negamax variant of alpha-beta algorithm.
@@ -32,7 +28,7 @@ private:
 		assert(!P.canWinNext());
 
 		nodeCount++;
-
+		
 		uint64_t next = P.possibleNonLosingMoves();
 		if (next == 0)
 			return -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2; // opponent wins since there are no possbile non-losing move
@@ -61,26 +57,31 @@ private:
 				return beta; // prune the exploration if the [alpha;beta] window is empty.
 		}
 
-		// Compute values of each column to see which is best to move
-		for (int x = 0; x < Position::WIDTH; x++)
-			if (next & Position::column_mask(columnOrder[x]))
-			{
-				Position P2(P);
-				P2.play(columnOrder[x]);
-				int score = -negamax(P2, -beta, -alpha); // Basically how negamax works, read the wiki
+		MoveSorter moves;
+		for (int i = Position::WIDTH; i--;)
+			if (uint64_t move = next & Position::column_mask(columnOrder[i]))
+				moves.add(move, P.moveScore(move));
 
-				if (score >= beta)
-					return score; // prune the search if we find a move better than the current best
-				if (score > alpha)
-					alpha = score; // reduce the [alpha;beta] window
-			}
+		while (uint64_t next = moves.getNext())
+		{
+			Position P2(P);
+			P2.play(next);
+			int score = -negamax(P2, -beta, -alpha);
+
+			if (score >= beta)
+				return score; // prune the exploration
+			if (score > alpha)
+				alpha = score; // reduce the [alpha;beta] window
+		}
 
 		// save the upper bound of the position, minus MIN_SCORE and +1 to make sure the lowest value is 1
 		transTable.put(P.key(), alpha - Position::MIN_SCORE + 1);
 		return alpha;
 	}
-
+	
 public:
+	TranspositionTable transTable;
+
 	int solve(const Position &P)
 	{
 		if (P.canWinNext()) // check if win in one move as the Negamax function does not support this case.
@@ -118,7 +119,7 @@ public:
 					return col;
 				}
 				Position P2(P);
-				P2.play(col);
+				P2.playCol(col);
 				int score = -solve(P2);
 				if (score > best_score)
 				{
@@ -142,13 +143,14 @@ public:
 	}
 
 	Solver() : nodeCount{0}, transTable(8388593)
-	{ // 8388593 prime = 64MB of transposition table
+	{
 		reset();
 		for (int i = 0; i < Position::WIDTH; i++)
 			columnOrder[i] = Position::WIDTH / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2;
 		// initialize the column exploration order, starting with center columns
 		// example for WIDTH=7: columnOrder = {3, 4, 2, 5, 1, 6, 0}
 	}
+<<<<<<< HEAD:Solver.cpp
 };
 
 int runTest()
@@ -559,3 +561,6 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+=======
+};
+>>>>>>> main:headers/Solver.hpp

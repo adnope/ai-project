@@ -1,16 +1,19 @@
 CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++17
 
-TARGET = solver
-SRC = Solver.cpp
+TARGET = main
+SRC = main.cpp
 
-all: clean solver
+all: clean $(TARGET)
 
-solver: $(SRC)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) Solver.cpp
+$(TARGET): $(SRC)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRC)
+
+# clean:
+# 	rm -f "$(TARGET)"
 
 clean:
-	rm -f "$(TARGET)"
+	if exist "$(TARGET)" del "$(TARGET)"
 
 run: all
 	./$(TARGET) $(ARGS)
