@@ -9,11 +9,8 @@ all: clean $(TARGET)
 $(TARGET): $(SRC)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRC)
 
-# clean:
-# 	rm -f "$(TARGET)"
-
 clean:
-	if exist "$(TARGET)" del "$(TARGET)"
+	rm -f "$(TARGET)"
 
 run: all
 	./$(TARGET) $(ARGS)
