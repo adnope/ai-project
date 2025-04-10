@@ -71,17 +71,11 @@ void findMoveAndCalculateScore()
 		}
 		else
 		{
-			if (line.length() < 10)
+			
+			uint8_t bestScore = (openingBook.getBestMove(solver.transTable.encodeMoves(line)));
+			if (bestScore != OpeningBook::NO_MOVE)
 			{
-				uint8_t bestMove = (openingBook.getBestMove(solver.transTable.encodeMoves(line)));
-				if (bestMove != OpeningBook::NO_MOVE)
-				{
-					std::cout << "Key " << line << " best move " << (int)(bestMove) << std::endl;
-				}
-				else
-				{
-					std::cout << "not find " << line << std::endl;
-				}
+				std::cout << "Key " << line << " best score " << (int)(bestScore - 1 + Position::MIN_SCORE) << std::endl;
 			}
 			else
 			{
@@ -93,11 +87,11 @@ void findMoveAndCalculateScore()
 				std::chrono::duration<double, std::milli> duration = end - start;
 
 				std::cout << line
-						  << ": " << P.nbMoves() << " moves, "
-						  << "Score: " << score
-						  << ", Nodes: " << solver.getNodeCount()
-						  << ", Time: " << duration.count()
-						  << " ms, Best move: column " << best_move + 1 << "\n";
+						<< ": " << P.nbMoves() << " moves, "
+						<< "Score: " << score
+						<< ", Nodes: " << solver.getNodeCount()
+						<< ", Time: " << duration.count()
+						<< " ms, Best move: column " << best_move + 1 << "\n";
 			}
 		}
 	}

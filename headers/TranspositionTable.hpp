@@ -77,15 +77,4 @@ public:
 	{
 		return sizeof(value_t);
 	}
-
-	uint64_t encodeMoves(const std::string &moves) const
-	{
-		uint64_t key = 0;
-		for (char c : moves)
-		{
-			int move = c - '0';
-			key = (key << 3) | (move & 0x7);
-		}
-		return key;
-	}
 };

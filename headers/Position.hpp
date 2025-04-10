@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cassert>
+#include <string>
 
 constexpr static uint64_t bottom(int width, int height)
 {
@@ -93,6 +94,29 @@ public:
 	int moveScore(uint64_t move) const
 	{
 		return countSetBits(compute_winning_position(current_position | move, mask));
+	}
+
+	uint64_t key3() const 
+	{
+		uint64_t key_forward = 0;
+		for(int i = 0; i < Position::WIDTH; i++)
+			partialKey3(key_forward, i);
+	
+		uint64_t key_reverse = 0;
+		for(int i = Position::WIDTH; i--; )
+			partialKey3(key_reverse, i);
+	
+		return key_forward < key_reverse ? key_forward / 3 : key_reverse / 3;
+	}
+	
+	void partialKey3(uint64_t &key, int col) const 
+	{
+		for(uint64_t pos = UINT64_C(1) << (col * (Position::HEIGHT + 1)); pos & mask; pos <<= 1) {
+		  key *= 3;
+		  if(pos & current_position) key += 1;
+		  else key += 2;
+		}
+		key *= 3;
 	}
 
 	Position() : current_position{0}, mask{0}, moves{0} {}
