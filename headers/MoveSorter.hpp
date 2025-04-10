@@ -13,14 +13,9 @@ class MoveSorter
 public:
     void add(uint64_t move, int score)
     {
-        int pos = size;
-        ++size;
-
-        if (pos != 0)
-        {
-            for (; entries[pos - 1].score > score; --pos)
-                entries[pos] = entries[pos - 1];
-        }
+        int pos = size++;
+        for (; pos && entries[pos - 1].score > score; --pos)
+            entries[pos] = entries[pos - 1];
 
         entries[pos].move = move;
         entries[pos].score = score;
@@ -30,8 +25,7 @@ public:
     {
         if (size)
         {
-            return entries[size - 1].move;
-            --size;
+            return entries[--size].move;
         }
         else
             return 0;

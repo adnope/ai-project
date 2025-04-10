@@ -6,7 +6,7 @@
 int runTest()
 {
 	Solver solver;
-	std::ifstream testStream("tests/begin_hard_test.txt");
+	std::ifstream testStream("tests/10_moves_test.txt");
 
 	if (!testStream)
 	{
@@ -169,7 +169,7 @@ int startGame()
 {
 	Solver solver;
 
-	std::string sequence = "444433323556";
+	std::string sequence = "444344535356";
 	Position P;
 	P.play(sequence);
 
