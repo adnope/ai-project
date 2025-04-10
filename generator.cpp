@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include <algorithm>
 
-std::string CalculateScore(const std::string& line)
+std::string calculateScore(const std::string &line)
 {
     Solver solver;
     Position P;
@@ -29,8 +29,9 @@ std::string CalculateScore(const std::string& line)
     return result.str();
 }
 
-void generateAllMoves(int length) {
-    std::ofstream outfile("moves_score.txt", std::ios::app); 
+void generateAllMoves(int length)
+{
+    std::ofstream outfile("moves_score.txt", std::ios::app);
     std::vector<std::string> buffer;
     int validCount = 0;
 
@@ -38,15 +39,18 @@ void generateAllMoves(int length) {
     for (int i = 0; i < length; ++i)
         total *= 7;
 
-    for (long long i = 0; i < total; ++i) {
+    for (long long i = 0; i < total; ++i)
+    {
         long long num = i;
         std::string moves;
         std::vector<int> columnCount(7, 0);
 
-        for (int j = 0; j < length; ++j) {
+        for (int j = 0; j < length; ++j)
+        {
             int digit = num % 7;
             columnCount[digit]++;
-            if (columnCount[digit] > 6) {
+            if (columnCount[digit] > 6)
+            {
                 moves.clear();
                 break;
             }
@@ -54,67 +58,75 @@ void generateAllMoves(int length) {
             num /= 7;
         }
 
-        if (moves.empty()) continue;
+        if (moves.empty())
+            continue;
         std::reverse(moves.begin(), moves.end());
 
-        if (std::stoi(moves) <= 1111122162) continue;
+        if (std::stoi(moves) <= 1111122162)
+            continue;
 
-        std::string line = CalculateScore(moves);
-        if (!line.empty()) {
+        std::string line = calculateScore(moves);
+        if (!line.empty())
+        {
             buffer.push_back(line);
             validCount++;
         }
 
-        if (buffer.size() == 100) {
-            for (const std::string& entry : buffer)
+        if (buffer.size() == 100)
+        {
+            for (const std::string &entry : buffer)
                 outfile << entry << "\n";
             buffer.clear();
             outfile.flush();
         }
     }
 
-    for (const std::string& entry : buffer)
+    for (const std::string &entry : buffer)
         outfile << entry << "\n";
     outfile.flush();
     outfile.close();
 }
 
-void generate_opening_book() {
-  static constexpr int BOOK_SIZE = 27; 
-  static constexpr double LOG_3 = 1.58496250072; 
-  TranspositionTable* table = new TranspositionTable(1<<BOOK_SIZE);
+void generate_opening_book()
+{
+    static constexpr int BOOK_SIZE = 27;
+    static constexpr double LOG_3 = 1.58496250072;
+    TranspositionTable *table = new TranspositionTable(1 << BOOK_SIZE);
 
-  long long count = 1;
-  for(std::string line; getline(std::cin, line); count++) {
-    if(line.length() == 0) break; 
-    std::istringstream iss(line);
-    std::string moves;
-    getline(iss, moves, ' '); 
-    int score;
-    iss >> score;
+    long long count = 1;
+    for (std::string line; getline(std::cin, line); count++)
+    {
+        if (line.length() == 0)
+            break;
+        std::istringstream iss(line);
+        std::string moves;
+        getline(iss, moves, ' ');
+        int score;
+        iss >> score;
 
-    Position P;
-    if(iss.fail() || !iss.eof()
-        || P.play(moves) != moves.length()
-        || score < Position::MIN_SCORE || score > Position::MAX_SCORE) { 
-      std::cerr << "Invalid line (line ignored): " << line << std::endl;
-      continue;
+        Position P;
+        if (iss.fail() || !iss.eof() || P.play(moves) != moves.length() || score < Position::MIN_SCORE || score > Position::MAX_SCORE)
+        {
+            std::cerr << "Invalid line (line ignored): " << line << std::endl;
+            continue;
+        }
+
+        table->put(P.key3(), score - Position::MIN_SCORE + 1);
+        if (count % 1000000 == 0)
+            std::cerr << count << std::endl;
     }
-    
-    table->put(P.key3(), score - Position::MIN_SCORE + 1);
-    if(count % 1000000 == 0) std::cerr << count << std::endl;
-  }  
 
-  OpeningBook book{Position::WIDTH, Position::HEIGHT, table};
+    OpeningBook book{Position::WIDTH, Position::HEIGHT, table};
 
-  std::ostringstream book_file;
-  book_file << Position::WIDTH << "x" << Position::HEIGHT << ".book";
-  book.save(book_file.str());
+    std::ostringstream book_file;
+    book_file << Position::WIDTH << "x" << Position::HEIGHT << "_2" << ".book";
+    book.save(book_file.str());
 }
 
-int main(int argc, char** argv) {
-//   for (int i = 1; i <= 10; i++) {
-//     generateAllMoves(i);
-//   }
-  generate_opening_book();
+int main(int argc, char **argv)
+{
+    //   for (int i = 1; i <= 10; i++) {
+    //     generateAllMoves(i);
+    //   }
+    generate_opening_book();
 }

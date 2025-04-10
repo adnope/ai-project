@@ -3,18 +3,20 @@
 #include "headers/Solver.hpp"
 #include "headers/OpeningBook.hpp"
 
+using namespace std;
+
 int runTest()
 {
 	Solver solver;
-	std::ifstream testStream("tests/10_moves_test.txt");
+	ifstream testStream("tests/10_moves_test.txt");
 
 	if (!testStream)
 	{
-		std::cerr << "Cannot open test file.";
+		cerr << "Cannot open test file.";
 		return 1;
 	}
 
-	std::string line;
+	string line;
 	int correct_score;
 
 	int l = 0;
@@ -23,19 +25,19 @@ int runTest()
 		Position P;
 		if (P.play(line) != line.size())
 		{
-			std::cout << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << std::endl;
+			cout << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << endl;
 		}
 		else
 		{
 			solver.reset();
-			auto start = std::chrono::high_resolution_clock::now();
+			auto start = chrono::high_resolution_clock::now();
 			unsigned int best_move = solver.findBestMove(P);
-			auto end = std::chrono::high_resolution_clock::now();
-			std::chrono::duration<double, std::milli> duration = end - start;
+			auto end = chrono::high_resolution_clock::now();
+			chrono::duration<double, milli> duration = end - start;
 
 			int score = solver.solve(P);
 
-			std::cout << line
+			cout << line
 					  << ": " << P.nbMoves() << " moves, "
 					  << "Score: " << score
 					  << ", Nodes: " << solver.getNodeCount()
@@ -43,9 +45,9 @@ int runTest()
 					  << " ms, Best move: column " << best_move + 1 << " - ";
 
 			if (score == correct_score)
-				std::cout << "[Correct!]" << std::endl;
+				cout << "[Correct!]" << endl;
 			else
-				std::cout << "[INCORRECT]";
+				cout << "[INCORRECT]";
 		}
 		l++;
 	}
@@ -59,26 +61,26 @@ void findMoveAndCalculateScore()
 	OpeningBook openingBook(7, 6, &solver.transTable);
 	openingBook.load("7x6.book");
 
-	std::string line;
+	string line;
 
-	for (int l = 1; std::getline(std::cin, line); l++)
+	for (int l = 1; getline(cin, line); l++)
 	{
 		Position P;
 
 		if (P.play(line) != line.size())
 		{
-			std::cerr << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << std::endl;
+			cerr << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << endl;
 		}
 		else
 		{
 			solver.reset();
-			auto start = std::chrono::high_resolution_clock::now();
+			auto start = chrono::high_resolution_clock::now();
 			unsigned int best_move = solver.findBestMove(P);
 			int score = solver.solve(P);
-			auto end = std::chrono::high_resolution_clock::now();
-			std::chrono::duration<double, std::milli> duration = end - start;
+			auto end = chrono::high_resolution_clock::now();
+			chrono::duration<double, milli> duration = end - start;
 
-			std::cout << line
+			cout << line
 					  << ": " << P.nbMoves() << " moves, "
 					  << "Score: " << score
 					  << ", Nodes: " << solver.getNodeCount()
@@ -88,7 +90,7 @@ void findMoveAndCalculateScore()
 	}
 }
 
-void printConnectFourBoard(const std::string &moves)
+void printConnectFourBoard(const string &moves)
 {
 	const int ROWS = Position::HEIGHT;
 	const int COLS = Position::WIDTH;
@@ -109,7 +111,7 @@ void printConnectFourBoard(const std::string &moves)
 		int col = moves[i] - '1'; // Convert char to 0-based column index
 		if (col < 0 || col >= COLS)
 		{
-			std::cerr << "Invalid column: " << moves[i] << std::endl;
+			cerr << "Invalid column: " << moves[i] << endl;
 			return;
 		}
 
@@ -122,7 +124,7 @@ void printConnectFourBoard(const std::string &moves)
 
 		if (row < 0)
 		{
-			std::cerr << "Column " << col + 1 << " is already full!" << std::endl;
+			cerr << "Column " << col + 1 << " is already full!" << endl;
 			return;
 		}
 
@@ -133,38 +135,38 @@ void printConnectFourBoard(const std::string &moves)
 	// Print the board
 	for (int i = 0; i < ROWS; i++)
 	{
-		std::cout << "|";
+		cout << "|";
 		for (int j = 0; j < COLS; j++)
 		{
-			std::cout << board[i][j] << "|";
+			cout << board[i][j] << "|";
 		}
-		std::cout << std::endl;
+		cout << endl;
 	}
 
 	// Print column numbers
-	std::cout << " ";
+	cout << " ";
 	for (int j = 1; j <= COLS; j++)
 	{
-		std::cout << j << " ";
+		cout << j << " ";
 	}
-	std::cout << std::endl;
+	cout << endl;
 }
 
 int startGame()
 {
 	Solver solver;
 
-	std::string sequence = "444344535356";
+	string sequence = "444344535356";
 	Position P;
 	P.play(sequence);
 
-	std::cout << "Choose your side:\n"
+	cout << "Choose your side:\n"
 			  << "[1]: Red\n"
 			  << "[2]: Yellow\n"
 			  << "Enter your choice: ";
 
 	int choice;
-	while (std::cin >> choice)
+	while (cin >> choice)
 	{
 		if (choice == 1)
 		{
@@ -177,57 +179,57 @@ int startGame()
 		}
 		else
 		{
-			std::cout << "Invalid choice\n"
+			cout << "Invalid choice\n"
 					  << "Enter your choice: ";
 		}
 	}
 
-	std::cout << "The game has started!\n";
+	cout << "The game has started!\n";
 
 	int player_move;
 	while (1)
 	{
 		printConnectFourBoard(sequence);
-		std::cout << "Enter your move: column: ";
-		std::cin >> player_move;
+		cout << "Enter your move: column: ";
+		cin >> player_move;
 
 		while (player_move < 1 || player_move > Position::WIDTH)
 		{
-			std::cout << "Invalid move\nEnter your move: ";
-			std::cin >> player_move;
+			cout << "Invalid move\nEnter your move: ";
+			cin >> player_move;
 		}
 
 		if (P.isWinningMove(player_move - 1))
 		{
-			sequence += std::to_string(player_move);
+			sequence += to_string(player_move);
 			printConnectFourBoard(sequence);
-			std::cout << "You win!\n";
+			cout << "You win!\n";
 			break;
 		}
 
-		sequence += std::to_string(player_move);
+		sequence += to_string(player_move);
 		P.playCol(player_move - 1);
 
 		int ai_move = solver.findBestMove(P);
 		if (P.isWinningMove(ai_move))
 		{
-			std::cout << "Bot has played: column " << ai_move + 1 << std::endl;
-			sequence += std::to_string(ai_move + 1);
+			cout << "Bot has played: column " << ai_move + 1 << endl;
+			sequence += to_string(ai_move + 1);
 			printConnectFourBoard(sequence);
-			std::cout << "You lose!\n";
+			cout << "You lose!\n";
 			break;
 		}
 		P.playCol(ai_move);
-		sequence += std::to_string(ai_move + 1);
-		std::cout << "Bot has played: column " << ai_move + 1 << std::endl;
+		sequence += to_string(ai_move + 1);
+		cout << "Bot has played: column " << ai_move + 1 << endl;
 	}
 
 	return 0;
 }
 
-std::vector<std::vector<int>> move_sequence_to_board(const std::string &sequence)
+vector<vector<int>> move_sequence_to_board(const string &sequence)
 {
-	std::vector<std::vector<int>> board(6, std::vector<int>(7, 0));
+	vector<vector<int>> board(6, vector<int>(7, 0));
 	int current_player = 1;
 
 	for (char move_char : sequence)
@@ -236,8 +238,8 @@ std::vector<std::vector<int>> move_sequence_to_board(const std::string &sequence
 
 		if (col < 0 || col > 6)
 		{
-			std::cerr << "Invalid move in sequence: " << move_char << std::endl;
-			return std::vector<std::vector<int>>(); // Return an empty board for invalid sequence
+			cerr << "Invalid move in sequence: " << move_char << endl;
+			return vector<vector<int>>(); // Return an empty board for invalid sequence
 		}
 
 		// Find the lowest empty row in the column
@@ -255,16 +257,16 @@ std::vector<std::vector<int>> move_sequence_to_board(const std::string &sequence
 		}
 		else
 		{
-			std::cerr << "Column full in sequence: " << move_char << std::endl;
-			return std::vector<std::vector<int>>(); // Return an empty board for invalid sequence
+			cerr << "Column full in sequence: " << move_char << endl;
+			return vector<vector<int>>(); // Return an empty board for invalid sequence
 		}
 	}
 
 	return board;
 }
 
-bool is_valid_board(const std::vector<std::vector<int>> &curr_board,
-					const std::vector<std::vector<int>> &target_board)
+bool is_valid_board(const vector<vector<int>> &curr_board,
+					const vector<vector<int>> &target_board)
 {
 	// Check if current board could lead to target board
 	for (int r = 0; r < 6; r++)
@@ -280,7 +282,7 @@ bool is_valid_board(const std::vector<std::vector<int>> &curr_board,
 	return true;
 }
 
-bool is_valid_connect4_board(const std::vector<std::vector<int>> &board)
+bool is_valid_connect4_board(const vector<vector<int>> &board)
 {
 	// Check if pieces are properly stacked due to gravity
 	for (int col = 0; col < 7; col++)
@@ -296,9 +298,9 @@ bool is_valid_connect4_board(const std::vector<std::vector<int>> &board)
 	return true;
 }
 
-bool dfs_find_sequence(const std::vector<std::vector<int>> &target_board,
-					   std::vector<std::vector<int>> &curr_board,
-					   std::vector<int> &move_seq,
+bool dfs_find_sequence(const vector<vector<int>> &target_board,
+					   vector<vector<int>> &curr_board,
+					   vector<int> &move_seq,
 					   int curr_player,
 					   int &piece_count)
 {
@@ -347,7 +349,7 @@ bool dfs_find_sequence(const std::vector<std::vector<int>> &target_board,
 	return false;
 }
 
-std::string board_to_move_sequence(const std::vector<std::vector<int>> &board)
+string board_to_move_sequence(const vector<vector<int>> &board)
 {
 	// First, verify the board is valid Connect 4 board
 	if (!is_valid_connect4_board(board))
@@ -355,8 +357,8 @@ std::string board_to_move_sequence(const std::vector<std::vector<int>> &board)
 		return ""; // Invalid board configuration
 	}
 
-	std::vector<int> move_seq;
-	std::vector<std::vector<int>> curr_board(6, std::vector<int>(7, 0));
+	vector<int> move_seq;
+	vector<vector<int>> curr_board(6, vector<int>(7, 0));
 
 	// Count total pieces
 	int piece_count = 0;
@@ -373,24 +375,24 @@ std::string board_to_move_sequence(const std::vector<std::vector<int>> &board)
 	int remaining = piece_count;
 	if (dfs_find_sequence(board, curr_board, move_seq, 1, remaining))
 	{
-		std::string result;
+		string result;
 		for (int move : move_seq)
 		{
-			result += std::to_string(move);
+			result += to_string(move);
 		}
 		return result;
 	}
 
 	// If player 1 starting didn't work, try player 2
 	move_seq.clear();
-	curr_board = std::vector<std::vector<int>>(6, std::vector<int>(7, 0));
+	curr_board = vector<vector<int>>(6, vector<int>(7, 0));
 	remaining = piece_count;
 	if (dfs_find_sequence(board, curr_board, move_seq, 2, remaining))
 	{
-		std::string result;
+		string result;
 		for (int move : move_seq)
 		{
-			result += std::to_string(move);
+			result += to_string(move);
 		}
 		return result;
 	}
@@ -400,28 +402,28 @@ std::string board_to_move_sequence(const std::vector<std::vector<int>> &board)
 
 int testSequenceToBoard()
 {
-	std::string test_sequence;
+	string test_sequence;
 
-	std::cout << "Enter a move sequence (e.g., 1234567): ";
-	std::cin >> test_sequence;
+	cout << "Enter a move sequence (e.g., 1234567): ";
+	cin >> test_sequence;
 
-	std::cout << "Testing sequence: " << test_sequence << "\n";
-	std::vector<std::vector<int>> board = move_sequence_to_board(test_sequence);
+	cout << "Testing sequence: " << test_sequence << "\n";
+	vector<vector<int>> board = move_sequence_to_board(test_sequence);
 
 	if (board.empty())
 	{
-		std::cout << "Invalid sequence!\n";
+		cout << "Invalid sequence!\n";
 		return 1;
 	}
 
-	std::cout << "\nFinal board state:\n";
+	cout << "\nFinal board state:\n";
 	for (int i = 0; i < 6; i++)
 	{
 		for (int j = 0; j < 7; j++)
 		{
-			std::cout << board[i][j] << " ";
+			cout << board[i][j] << " ";
 		}
-		std::cout << "\n";
+		cout << "\n";
 	}
 
 	return 0;
@@ -429,9 +431,9 @@ int testSequenceToBoard()
 
 void testBoardInput()
 {
-	std::vector<std::vector<int>> board(6, std::vector<int>(7, 0));
+	vector<vector<int>> board(6, vector<int>(7, 0));
 
-	std::cout << "Enter the Connect 4 board state (6 rows, 7 columns)\n"
+	cout << "Enter the Connect 4 board state (6 rows, 7 columns)\n"
 			  << "Use 0 for empty, 1 for player 1, 2 for player 2\n"
 			  << "Enter each row from top to bottom:\n";
 
@@ -439,23 +441,23 @@ void testBoardInput()
 	{
 		for (int j = 0; j < 7; j++)
 		{
-			std::cin >> board[i][j];
+			cin >> board[i][j];
 			if (board[i][j] < 0 || board[i][j] > 2)
 			{
-				std::cout << "Invalid input\n";
+				cout << "Invalid input\n";
 				return;
 			}
 		}
 	}
 
-	std::string sequence = board_to_move_sequence(board);
+	string sequence = board_to_move_sequence(board);
 
-	std::cout << "Move sequence: " << sequence << "\n";
+	cout << "Move sequence: " << sequence << "\n";
 
 	Position P;
 	if (P.play(sequence) != sequence.size())
 	{
-		std::cout << "Invalid sequence generated!\n";
+		cout << "Invalid sequence generated!\n";
 	}
 	else
 	{
@@ -464,24 +466,24 @@ void testBoardInput()
 		unsigned int best_move = solver.findBestMove(P);
 		int score = solver.solve(P);
 
-		std::cout << "Current position analysis:\n";
-		std::cout << "Best move: column " << best_move + 1 << "\n";
-		std::cout << "Position score: " << score << "\n";
+		cout << "Current position analysis:\n";
+		cout << "Best move: column " << best_move + 1 << "\n";
+		cout << "Position score: " << score << "\n";
 	}
 }
 
 int runTestForBoardToSequence()
 {
-	std::ifstream testStream("tests/begin_hard.txt");
-	std::ofstream resultStream("results_1.txt");
+	ifstream testStream("tests/begin_hard.txt");
+	ofstream resultStream("results_1.txt");
 
 	if (!testStream || !resultStream)
 	{
-		std::cerr << "Cannot open test file.";
+		cerr << "Cannot open test file.";
 		return 1;
 	}
 
-	std::string line;
+	string line;
 	int correct_score;
 	int total_tests = 0;
 	int successful_matches = 0;
@@ -496,7 +498,7 @@ int runTestForBoardToSequence()
 		resultStream << "-------------\n";
 		resultStream << "Original sequence: " << line << "\n";
 
-		std::vector<std::vector<int>> board = move_sequence_to_board(line);
+		vector<vector<int>> board = move_sequence_to_board(line);
 
 		if (board.empty())
 		{
@@ -505,10 +507,10 @@ int runTestForBoardToSequence()
 		}
 
 		// Convert board to move sequence
-		auto start_seq = std::chrono::high_resolution_clock::now();
-		std::string generated_sequence = board_to_move_sequence(board);
-		auto end_seq = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> duration_seq = end_seq - start_seq;
+		auto start_seq = chrono::high_resolution_clock::now();
+		string generated_sequence = board_to_move_sequence(board);
+		auto end_seq = chrono::high_resolution_clock::now();
+		chrono::duration<double, milli> duration_seq = end_seq - start_seq;
 
 		if (generated_sequence.empty())
 		{
@@ -516,7 +518,7 @@ int runTestForBoardToSequence()
 			continue;
 		}
 
-		std::vector<std::vector<int>> final_board = move_sequence_to_board(generated_sequence);
+		vector<vector<int>> final_board = move_sequence_to_board(generated_sequence);
 
 		bool boards_match = (board == final_board);
 		if (boards_match)
@@ -548,7 +550,7 @@ int runTestForBoardToSequence()
 	testStream.close();
 	resultStream.close();
 
-	std::cout << "Results written to results.txt\n";
+	cout << "Results written to results.txt\n";
 	return 0;
 }
 
@@ -582,7 +584,7 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			std::cerr << "Argument not found.\n";
+			cerr << "Argument not found.\n";
 			return 1;
 		}
 	}
