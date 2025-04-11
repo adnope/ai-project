@@ -53,7 +53,7 @@ void calculateScore()
 
     int lines_done = 0;
     std::ifstream input("moves_with_scores.txt");
-    while (getline(input, line))
+    while (getline(input, line) && !line.empty())
     {
         lines_done++;
     }
