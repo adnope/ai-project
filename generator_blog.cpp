@@ -41,7 +41,7 @@ void explore(const Position &P, char *pos_str, const int depth)
  * Input lines must be a valid position (possibly empty string), a space and a valid score
  * Read input until EOF or an empty line is reached.
  */
-void generate_opening_book()
+void generateOpeningBook()
 {
     static constexpr int BOOK_SIZE = 23;           // store 2^BOOK_SIZE positions in the book
     static constexpr int DEPTH = 14;               // max depth of every position to be stored
@@ -90,5 +90,5 @@ int main(int argc, char **argv)
         explore(Position(), pos_str, depth);
     }
     // else
-    //     generate_opening_book();
+    //     generateOpeningBook();
 }

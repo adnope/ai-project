@@ -87,7 +87,7 @@ void generateAllMoves(int length)
     outfile.close();
 }
 
-void generate_opening_book()
+void generateOpeningBook()
 {
     static constexpr int BOOK_SIZE = 27;
     static constexpr double LOG_3 = 1.58496250072;
@@ -128,5 +128,5 @@ int main(int argc, char **argv)
     //   for (int i = 1; i <= 10; i++) {
     //     generateAllMoves(i);
     //   }
-    generate_opening_book();
+    generateOpeningBook();
 }

@@ -227,7 +227,7 @@ int startGame()
 	return 0;
 }
 
-vector<vector<int>> move_sequence_to_board(const string &sequence)
+vector<vector<int>> moveSequenceToBoard(const string &sequence)
 {
 	vector<vector<int>> board(6, vector<int>(7, 0));
 	int current_player = 1;
@@ -265,7 +265,7 @@ vector<vector<int>> move_sequence_to_board(const string &sequence)
 	return board;
 }
 
-bool is_valid_board(const vector<vector<int>> &curr_board,
+bool isValidBoard(const vector<vector<int>> &curr_board,
 					const vector<vector<int>> &target_board)
 {
 	// Check if current board could lead to target board
@@ -282,7 +282,7 @@ bool is_valid_board(const vector<vector<int>> &curr_board,
 	return true;
 }
 
-bool is_valid_connect4_board(const vector<vector<int>> &board)
+bool isValidConnect4Board(const vector<vector<int>> &board)
 {
 	// Check if pieces are properly stacked due to gravity
 	for (int col = 0; col < 7; col++)
@@ -298,7 +298,7 @@ bool is_valid_connect4_board(const vector<vector<int>> &board)
 	return true;
 }
 
-bool dfs_find_sequence(const vector<vector<int>> &target_board,
+bool dfsFindSequence(const vector<vector<int>> &target_board,
 					   vector<vector<int>> &curr_board,
 					   vector<int> &move_seq,
 					   int curr_player,
@@ -332,7 +332,7 @@ bool dfs_find_sequence(const vector<vector<int>> &target_board,
 				piece_count--;
 
 				// Recursively try next move with other player
-				if (dfs_find_sequence(target_board, curr_board, move_seq,
+				if (dfsFindSequence(target_board, curr_board, move_seq,
 									  curr_player == 1 ? 2 : 1, piece_count))
 				{
 					return true;
@@ -349,10 +349,10 @@ bool dfs_find_sequence(const vector<vector<int>> &target_board,
 	return false;
 }
 
-string board_to_move_sequence(const vector<vector<int>> &board)
+string boardToMoveSequence(const vector<vector<int>> &board)
 {
 	// First, verify the board is valid Connect 4 board
-	if (!is_valid_connect4_board(board))
+	if (!isValidConnect4Board(board))
 	{
 		return ""; // Invalid board configuration
 	}
@@ -373,7 +373,7 @@ string board_to_move_sequence(const vector<vector<int>> &board)
 
 	// Try starting with player 1
 	int remaining = piece_count;
-	if (dfs_find_sequence(board, curr_board, move_seq, 1, remaining))
+	if (dfsFindSequence(board, curr_board, move_seq, 1, remaining))
 	{
 		string result;
 		for (int move : move_seq)
@@ -387,7 +387,7 @@ string board_to_move_sequence(const vector<vector<int>> &board)
 	move_seq.clear();
 	curr_board = vector<vector<int>>(6, vector<int>(7, 0));
 	remaining = piece_count;
-	if (dfs_find_sequence(board, curr_board, move_seq, 2, remaining))
+	if (dfsFindSequence(board, curr_board, move_seq, 2, remaining))
 	{
 		string result;
 		for (int move : move_seq)
@@ -408,7 +408,7 @@ int testSequenceToBoard()
 	cin >> test_sequence;
 
 	cout << "Testing sequence: " << test_sequence << "\n";
-	vector<vector<int>> board = move_sequence_to_board(test_sequence);
+	vector<vector<int>> board = moveSequenceToBoard(test_sequence);
 
 	if (board.empty())
 	{
@@ -450,7 +450,7 @@ void testBoardInput()
 		}
 	}
 
-	string sequence = board_to_move_sequence(board);
+	string sequence = boardToMoveSequence(board);
 
 	cout << "Move sequence: " << sequence << "\n";
 
@@ -498,7 +498,7 @@ int runTestForBoardToSequence()
 		resultStream << "-------------\n";
 		resultStream << "Original sequence: " << line << "\n";
 
-		vector<vector<int>> board = move_sequence_to_board(line);
+		vector<vector<int>> board = moveSequenceToBoard(line);
 
 		if (board.empty())
 		{
@@ -508,7 +508,7 @@ int runTestForBoardToSequence()
 
 		// Convert board to move sequence
 		auto start_seq = chrono::high_resolution_clock::now();
-		string generated_sequence = board_to_move_sequence(board);
+		string generated_sequence = boardToMoveSequence(board);
 		auto end_seq = chrono::high_resolution_clock::now();
 		chrono::duration<double, milli> duration_seq = end_seq - start_seq;
 
@@ -518,7 +518,7 @@ int runTestForBoardToSequence()
 			continue;
 		}
 
-		vector<vector<int>> final_board = move_sequence_to_board(generated_sequence);
+		vector<vector<int>> final_board = moveSequenceToBoard(generated_sequence);
 
 		bool boards_match = (board == final_board);
 		if (boards_match)
