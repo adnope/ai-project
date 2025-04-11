@@ -1,17 +1,18 @@
 #include "headers/Position.hpp"
 #include "headers/OpeningBook.hpp"
+#include "headers/Solver.hpp"
 
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <unordered_set>
+#include <fstream>
+
+std::ofstream moves("moves.txt", std::ios::app);
 
 std::unordered_set<uint64_t> visited;
+int number_of_moves = 0;
 
-/**
- * Explore and print all possible position under a given depth.
- * symetric positions are printed only once.
- */
 void explore(const Position &P, char *pos_str, const int depth)
 {
     uint64_t key = P.key3();
@@ -20,7 +21,11 @@ void explore(const Position &P, char *pos_str, const int depth)
 
     int nb_moves = P.nbMoves();
     if (nb_moves <= depth)
-        std::cout << pos_str << std::endl;
+    {
+        // std::cout << pos_str << std::endl;
+        moves << pos_str << std::endl;
+        number_of_moves++;
+    }
     if (nb_moves >= depth)
         return; // do not explore at further depth
 
@@ -35,52 +40,24 @@ void explore(const Position &P, char *pos_str, const int depth)
         }
 }
 
-/**
- * Read scored positions from stdin and store them in an opening book
- *
- * Input lines must be a valid position (possibly empty string), a space and a valid score
- * Read input until EOF or an empty line is reached.
- */
-void generateOpeningBook()
+void calculateScore()
 {
-    static constexpr int BOOK_SIZE = 23;           // store 2^BOOK_SIZE positions in the book
-    static constexpr int DEPTH = 14;               // max depth of every position to be stored
-    static constexpr double LOG_3 = 1.58496250072; // log2(3)
-    TranspositionTable *table = new TranspositionTable(8388617);
+    std::ifstream moves_file("moves.txt");
+    std::ofstream moves_with_scores("moves_with_scores.txt", std::ios::app);
 
-    long long count = 1;
-    for (std::string line; getline(std::cin, line); count++)
+    Solver solver;
+
+    std::string line;
+    while (getline(moves_file, line))
     {
-        if (line.length() == 0)
-            break; // empty line = end of input
-        std::istringstream iss(line);
-        std::string pos;
-        getline(iss, pos, ' '); // read position before first space character
-        int score;
-        iss >> score;
-
         Position P;
-        if (iss.fail() || !iss.eof() || P.play(pos) != pos.length() || score < Position::MIN_SCORE || score > Position::MAX_SCORE)
-        { // a valid line is a position a space and a valid score
-            std::cerr << "Invalid line (line ignored): " << line << std::endl;
-            continue;
-        }
-        table->put(P.key3(), score - Position::MIN_SCORE + 1);
-        if (count % 1000000 == 0)
-            std::cerr << count << std::endl;
+        P.play(line);
+        int score = solver.solve(P);
+
+        moves_with_scores << line << " " << score << "\n";
     }
-
-    OpeningBook book{Position::WIDTH, Position::HEIGHT, table};
-
-    std::ostringstream book_file;
-    book_file << Position::WIDTH << "x" << Position::HEIGHT << ".book";
-    book.save(book_file.str());
 }
 
-/**
- * If used with a max depth parameter: generate all uniquepsoition upto max depth
- * If no parameter: read scoredposition from standard input to store in an opening book
- */
 int main(int argc, char **argv)
 {
     if (argc > 1)
@@ -88,7 +65,7 @@ int main(int argc, char **argv)
         int depth = atoi(argv[1]);
         char pos_str[depth + 1] = {0};
         explore(Position(), pos_str, depth);
+        std::cout << "Number of moves: " << number_of_moves;
     }
-    // else
-    //     generateOpeningBook();
+    else calculateScore();
 }

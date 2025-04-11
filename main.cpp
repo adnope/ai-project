@@ -58,8 +58,8 @@ int runTest()
 void findMoveAndCalculateScore()
 {
 	Solver solver;
-	OpeningBook openingBook(7, 6, &solver.transTable);
-	openingBook.load("7x6.book");
+	// OpeningBook openingBook(7, 6, &solver.transTable);
+	// openingBook.load("7x6.book");
 
 	string line;
 
@@ -73,7 +73,7 @@ void findMoveAndCalculateScore()
 		}
 		else
 		{
-			solver.reset();
+			// solver.reset();
 			auto start = chrono::high_resolution_clock::now();
 			unsigned int best_move = solver.findBestMove(P);
 			int score = solver.solve(P);
