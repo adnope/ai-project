@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_set>
 #include <fstream>
+#include <chrono>
 
 std::ofstream moves("moves.txt", std::ios::app);
 
@@ -42,12 +43,24 @@ void explore(const Position &P, char *pos_str, const int depth)
 
 void calculateScore()
 {
+    auto start = std::chrono::high_resolution_clock::now();
+
     std::ifstream moves_file("moves.txt");
     std::ofstream moves_with_scores("moves_with_scores.txt", std::ios::app);
 
+    std::string line;
+
+    for (int i = 1; i <= 1272; i++)
+    {
+        getline(moves_file, line);
+    }
+
     Solver solver;
 
-    std::string line;
+    const int check_period = 300;
+    int count = 0;
+    int next_time = check_period;
+
     while (getline(moves_file, line))
     {
         Position P;
@@ -55,6 +68,17 @@ void calculateScore()
         int score = solver.solve(P);
 
         moves_with_scores << line << " " << score << "\n";
+        count++;
+
+        auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> duration = end - start;
+
+        double time_elapsed = duration.count() / 1000;
+        if (time_elapsed >= next_time) {
+            std::cout << "Time elapsed: " << duration.count() / 1000 << " seconds, " << count << " lines processed\n";
+            next_time += check_period;
+            moves_with_scores.flush();
+        }
     }
 }
 
@@ -67,5 +91,6 @@ int main(int argc, char **argv)
         explore(Position(), pos_str, depth);
         std::cout << "Number of moves: " << number_of_moves;
     }
-    else calculateScore();
+    else
+    calculateScore();
 }

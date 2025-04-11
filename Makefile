@@ -14,3 +14,7 @@ clean:
 
 run: all
 	./$(TARGET) $(ARGS)
+
+generate:
+	g++ generator_blog.cpp -o generator_blog.exe
+	./generator_blog.exe
