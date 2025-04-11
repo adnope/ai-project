@@ -41,25 +41,37 @@ void explore(const Position &P, char *pos_str, const int depth)
         }
 }
 
+/**
+ * Automatically continue from the last session if the program is terminated while processing.
+ * CHECK_PERIOD is a period of time (in seconds) which determines how often the program prints out its progress into the console.
+ */
 void calculateScore()
 {
     auto start = std::chrono::high_resolution_clock::now();
 
+    std::string line;
+
+    int lines_done = 0;
+    std::ifstream input("moves_with_scores.txt");
+    while (getline(input, line))
+    {
+        lines_done++;
+    }
+    input.close();
+
     std::ifstream moves_file("moves.txt");
     std::ofstream moves_with_scores("moves_with_scores.txt", std::ios::app);
 
-    std::string line;
-
-    for (int i = 1; i <= 1272; i++)
+    for (int i = 1; i <= lines_done; i++)
     {
         getline(moves_file, line);
     }
 
     Solver solver;
 
-    const int check_period = 300;
+    const int CHECK_PERIOD = 300;
     int count = 0;
-    int next_time = check_period;
+    int next_time = CHECK_PERIOD;
 
     while (getline(moves_file, line))
     {
@@ -71,12 +83,13 @@ void calculateScore()
         count++;
 
         auto end = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> duration = end - start;
+        std::chrono::duration<double, std::milli> duration = end - start;
 
         double time_elapsed = duration.count() / 1000;
-        if (time_elapsed >= next_time) {
+        if (time_elapsed >= next_time)
+        {
             std::cout << "Time elapsed: " << duration.count() / 1000 << " seconds, " << count << " lines processed\n";
-            next_time += check_period;
+            next_time += CHECK_PERIOD;
             moves_with_scores.flush();
         }
     }
@@ -92,5 +105,5 @@ int main(int argc, char **argv)
         std::cout << "Number of moves: " << number_of_moves;
     }
     else
-    calculateScore();
+        calculateScore();
 }
