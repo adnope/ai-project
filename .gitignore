@@ -5,4 +5,5 @@
 *.txt
 
 .vscode/
-solver
+main
+draft/

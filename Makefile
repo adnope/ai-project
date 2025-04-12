@@ -16,5 +16,5 @@ run: all
 	./$(TARGET) $(ARGS)
 
 generate:
-	g++ generator_blog.cpp -o generator_blog
-	./generator_blog
+	g++ generator.cpp -o generator
+	./generator $(ARGS)

@@ -21,14 +21,14 @@ private:
 	 * - if actual score of position >= beta then beta <= return value <= actual score
 	 * - if alpha <= actual score <= beta then return value = actual score
 	 */
-	int negamax(const Position &P, int alpha, int beta)
+	int Negamax(const Position &P, int alpha, int beta)
 	{
 		assert(alpha < beta);
-		assert(!P.canWinNext());
+		assert(!P.CanWinNext());
 
 		nodeCount++;
 		
-		uint64_t next = P.possibleNonLosingMoves();
+		uint64_t next = P.PossibleNonLosingMoves();
 		if (next == 0)
 			return -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2; // opponent wins since there are no possbile non-losing move
 
@@ -46,7 +46,7 @@ private:
 
 		// max is the smallest number of moves needed for the current player to win, also used to narrow down window.
 		int max = (Position::WIDTH * Position::HEIGHT - 1 - P.nbMoves()) / 2;
-		if (int val = transTable.get(P.key())) // check if the current state is in transTable or not, if it is, retrieve the value
+		if (int val = transTable.Get(P.Key())) // check if the current state is in transTable or not, if it is, retrieve the value
 			max = val + Position::MIN_SCORE - 1;
 
 		if (beta > max)
@@ -58,14 +58,14 @@ private:
 
 		MoveSorter moves;
 		for (int i = Position::WIDTH; i--;)
-			if (uint64_t move = next & Position::column_mask(columnOrder[i]))
-				moves.add(move, P.moveScore(move));
+			if (uint64_t move = next & Position::ColumnMask(columnOrder[i]))
+				moves.Add(move, P.MoveScore(move));
 
-		while (uint64_t next = moves.getNext())
+		while (uint64_t next = moves.GetNext())
 		{
 			Position P2(P);
-			P2.play(next);
-			int score = -negamax(P2, -beta, -alpha);
+			P2.Play(next);
+			int score = -Negamax(P2, -beta, -alpha);
 
 			if (score >= beta)
 				return score; // prune the exploration
@@ -74,16 +74,16 @@ private:
 		}
 
 		// save the upper bound of the position, minus MIN_SCORE and +1 to make sure the lowest value is 1
-		transTable.put(P.key(), alpha - Position::MIN_SCORE + 1);
+		transTable.Put(P.Key(), alpha - Position::MIN_SCORE + 1);
 		return alpha;
 	}
 	
 public:
 	TranspositionTable transTable;
 
-	int solve(const Position &P)
+	int Solve(const Position &P)
 	{
-		if (P.canWinNext()) // check if win in one move as the Negamax function does not support this case.
+		if (P.CanWinNext()) // check if win in one move as the Negamax function does not support this case.
 			return (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
 
 		int min = -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2;
@@ -96,7 +96,7 @@ public:
 				med = min / 2;
 			else if (med >= 0 && max / 2 > med)
 				med = max / 2;
-			int r = negamax(P, med, med + 1); // use a null depth window to know if the actual score is greater or smaller than med
+			int r = Negamax(P, med, med + 1); // use a null depth window to know if the actual score is greater or smaller than med
 			if (r <= med)
 				max = r;
 			else
@@ -105,21 +105,21 @@ public:
 		return min;
 	}
 
-	unsigned int findBestMove(const Position &P)
+	unsigned int FindBestMove(const Position &P)
 	{
 		int best_col;
 		int best_score = -100;
 		for (int col = 0; col < Position::WIDTH; ++col)
 		{
-			if (P.canPlay(col))
+			if (P.CanPlay(col))
 			{
-				if (P.isWinningMove(col))
+				if (P.IsWinningMove(col))
 				{
 					return col;
 				}
 				Position P2(P);
 				P2.playCol(col);
-				int score = -solve(P2);
+				int score = -Solve(P2);
 				if (score > best_score)
 				{
 					best_score = score;
@@ -130,20 +130,20 @@ public:
 		return best_col;
 	}
 
-	unsigned long long getNodeCount()
+	unsigned long long GetNodeCount()
 	{
 		return nodeCount;
 	}
 
-	void reset()
+	void Reset()
 	{
 		nodeCount = 0;
-		transTable.reset();
+		transTable.Reset();
 	}
 
 	Solver() : nodeCount{0}, transTable(8388593)
 	{
-		reset();
+		Reset();
 		for (int i = 0; i < Position::WIDTH; i++)
 			columnOrder[i] = Position::WIDTH / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2;
 		// initialize the column exploration order, starting with center columns

@@ -23,24 +23,24 @@ int runTest()
 	while (testStream >> line && testStream >> correct_score)
 	{
 		Position P;
-		if (P.play(line) != line.size())
+		if (P.Play(line) != line.size())
 		{
 			cout << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << endl;
 		}
 		else
 		{
-			solver.reset();
+			solver.Reset();
 			auto start = chrono::high_resolution_clock::now();
-			unsigned int best_move = solver.findBestMove(P);
+			unsigned int best_move = solver.FindBestMove(P);
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
 
-			int score = solver.solve(P);
+			int score = solver.Solve(P);
 
 			cout << line
 					  << ": " << P.nbMoves() << " moves, "
 					  << "Score: " << score
-					  << ", Nodes: " << solver.getNodeCount()
+					  << ", Nodes: " << solver.GetNodeCount()
 					  << ", Time: " << duration.count()
 					  << " ms, Best move: column " << best_move + 1 << " - ";
 
@@ -67,23 +67,23 @@ void findMoveAndCalculateScore()
 	{
 		Position P;
 
-		if (P.play(line) != line.size())
+		if (P.Play(line) != line.size())
 		{
 			cerr << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << endl;
 		}
 		else
 		{
-			// solver.reset();
+			// solver.Reset();
 			auto start = chrono::high_resolution_clock::now();
-			unsigned int best_move = solver.findBestMove(P);
-			int score = solver.solve(P);
+			unsigned int best_move = solver.FindBestMove(P);
+			int score = solver.Solve(P);
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
 
 			cout << line
 					  << ": " << P.nbMoves() << " moves, "
 					  << "Score: " << score
-					  << ", Nodes: " << solver.getNodeCount()
+					  << ", Nodes: " << solver.GetNodeCount()
 					  << ", Time: " << duration.count()
 					  << " ms, Best move: column " << best_move + 1 << "\n";
 		}
@@ -158,7 +158,7 @@ int startGame()
 
 	string sequence = "444344535356";
 	Position P;
-	P.play(sequence);
+	P.Play(sequence);
 
 	cout << "Choose your side:\n"
 			  << "[1]: Red\n"
@@ -174,7 +174,7 @@ int startGame()
 		}
 		else if (choice == 2)
 		{
-			P.playCol(solver.findBestMove(P));
+			P.playCol(solver.FindBestMove(P));
 			break;
 		}
 		else
@@ -199,7 +199,7 @@ int startGame()
 			cin >> player_move;
 		}
 
-		if (P.isWinningMove(player_move - 1))
+		if (P.IsWinningMove(player_move - 1))
 		{
 			sequence += to_string(player_move);
 			printConnectFourBoard(sequence);
@@ -210,8 +210,8 @@ int startGame()
 		sequence += to_string(player_move);
 		P.playCol(player_move - 1);
 
-		int ai_move = solver.findBestMove(P);
-		if (P.isWinningMove(ai_move))
+		int ai_move = solver.FindBestMove(P);
+		if (P.IsWinningMove(ai_move))
 		{
 			cout << "Bot has played: column " << ai_move + 1 << endl;
 			sequence += to_string(ai_move + 1);
@@ -455,16 +455,16 @@ void testBoardInput()
 	cout << "Move sequence: " << sequence << "\n";
 
 	Position P;
-	if (P.play(sequence) != sequence.size())
+	if (P.Play(sequence) != sequence.size())
 	{
 		cout << "Invalid sequence generated!\n";
 	}
 	else
 	{
 		Solver solver;
-		solver.reset();
-		unsigned int best_move = solver.findBestMove(P);
-		int score = solver.solve(P);
+		solver.Reset();
+		unsigned int best_move = solver.FindBestMove(P);
+		int score = solver.Solve(P);
 
 		cout << "Current position analysis:\n";
 		cout << "Best move: column " << best_move + 1 << "\n";

@@ -24,7 +24,7 @@ public:
     {
         if (bestMove < Position::WIDTH)
         {
-            T->put(key, bestMove);
+            T->Put(key, bestMove);
         }
     }
 
@@ -38,13 +38,13 @@ public:
         }
 
         size_t count = 0;
-        for (unsigned int i = 0; i < T->getSize(); ++i)
+        for (unsigned int i = 0; i < T->GetSize(); ++i)
         {
             if (count >= MAX_ENTRIES)
                 break;
 
-            uint64_t key = T->getKeys()[i];
-            uint8_t move = T->get(key);
+            uint64_t key = T->GetKeys()[i];
+            uint8_t move = T->Get(key);
 
             if (move != 0)
             {
@@ -84,7 +84,7 @@ public:
             }
 
             uint8_t move = buf[7];
-            T->put(key, move);
+            T->Put(key, move);
             ++loaded;
         }
 
@@ -94,12 +94,12 @@ public:
 
     uint8_t getBestMove(uint64_t key) const
     {
-        uint8_t move = T->get(key);
+        uint8_t move = T->Get(key);
         return (move != 0) ? move : NO_MOVE;
     }
 
     bool has(uint64_t key) const
     {
-        return T->get(key) != 0;
+        return T->Get(key) != 0;
     }
 };

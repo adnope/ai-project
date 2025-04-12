@@ -11,7 +11,7 @@
 class MoveSorter
 {
 public:
-    void add(uint64_t move, int score)
+    void Add(uint64_t move, int score)
     {
         int pos = size++;
         for (; pos && entries[pos - 1].score > score; --pos)
@@ -21,7 +21,7 @@ public:
         entries[pos].score = score;
     }
 
-    uint64_t getNext()
+    uint64_t GetNext()
     {
         if (size)
         {
@@ -31,7 +31,7 @@ public:
             return 0;
     }
 
-    void reset()
+    void Reset()
     {
         size = 0;
     }

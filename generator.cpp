@@ -1,132 +1,120 @@
 #include "headers/Position.hpp"
 #include "headers/OpeningBook.hpp"
-#include "headers/TranspositionTable.hpp"
 #include "headers/Solver.hpp"
-#include "headers/MoveSorter.hpp"
+
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <unordered_set>
-#include <algorithm>
+#include <fstream>
+#include <chrono>
 
-std::string calculateScore(const std::string &line)
+std::unordered_set<uint64_t> visited;
+int number_of_explored_moves = 0;
+
+void explore(const Position &P, char *pos_str, const int depth, std::ofstream &explored_moves_stream)
 {
+    uint64_t key = P.Key3();
+    if (!visited.insert(key).second)
+        return;
+
+    int nb_moves = P.nbMoves();
+    if (nb_moves <= depth)
+        explored_moves_stream << pos_str << std::endl;
+        number_of_explored_moves++;
+    if (nb_moves >= depth)
+        return;
+
+    for (int i = 0; i < Position::WIDTH; i++)
+        if (P.CanPlay(i) && !P.IsWinningMove(i))
+        {
+            Position P2(P);
+            P2.playCol(i);
+            pos_str[nb_moves] = '1' + i;
+            explore(P2, pos_str, depth, explored_moves_stream);
+            pos_str[nb_moves] = 0;
+        }
+}
+
+/**
+ * Automatically continue from the last session if the program is terminated while processing.
+ * CHECK_PERIOD is a period of time (in seconds) which determines how often the program prints out its progress into the console.
+ */
+void calculateScore(std::string input_file, std::string result_file)
+{
+    auto start = std::chrono::high_resolution_clock::now();
+
+    std::string line;
+
+    int lines_done = 0;
+    std::ifstream input(result_file);
+    while (getline(input, line) && !line.empty())
+    {
+        lines_done++;
+    }
+    input.close();
+
+    std::ifstream moves_file(input_file);
+    std::ofstream moves_with_scores(result_file, std::ios::app);
+
+    for (int i = 1; i <= lines_done; i++)
+    {
+        getline(moves_file, line);
+    }
+
     Solver solver;
-    Position P;
 
-    if (P.play(line) != line.size())
+    const int CHECK_PERIOD = 10;
+    int count = 0;
+    int next_time = CHECK_PERIOD;
+
+    while (getline(moves_file, line))
     {
-        std::cerr << "Invalid move at move " << (P.nbMoves() + 1) << ": \"" << line << "\"" << std::endl;
-    }
-
-    solver.reset();
-    int score = solver.solve(P);
-
-    std::ostringstream result;
-    result << line << " " << score;
-    std::cout << result.str() << "\n";
-
-    return result.str();
-}
-
-void generateAllMoves(int length)
-{
-    std::ofstream outfile("moves_score.txt", std::ios::app);
-    std::vector<std::string> buffer;
-    int validCount = 0;
-
-    long long total = 1;
-    for (int i = 0; i < length; ++i)
-        total *= 7;
-
-    for (long long i = 0; i < total; ++i)
-    {
-        long long num = i;
-        std::string moves;
-        std::vector<int> columnCount(7, 0);
-
-        for (int j = 0; j < length; ++j)
-        {
-            int digit = num % 7;
-            columnCount[digit]++;
-            if (columnCount[digit] > 6)
-            {
-                moves.clear();
-                break;
-            }
-            moves += ('1' + digit);
-            num /= 7;
-        }
-
-        if (moves.empty())
-            continue;
-        std::reverse(moves.begin(), moves.end());
-
-        if (std::stoi(moves) <= 1111122162)
-            continue;
-
-        std::string line = calculateScore(moves);
-        if (!line.empty())
-        {
-            buffer.push_back(line);
-            validCount++;
-        }
-
-        if (buffer.size() == 100)
-        {
-            for (const std::string &entry : buffer)
-                outfile << entry << "\n";
-            buffer.clear();
-            outfile.flush();
-        }
-    }
-
-    for (const std::string &entry : buffer)
-        outfile << entry << "\n";
-    outfile.flush();
-    outfile.close();
-}
-
-void generateOpeningBook()
-{
-    static constexpr int BOOK_SIZE = 27;
-    static constexpr double LOG_3 = 1.58496250072;
-    TranspositionTable *table = new TranspositionTable(1 << BOOK_SIZE);
-
-    long long count = 1;
-    for (std::string line; getline(std::cin, line); count++)
-    {
-        if (line.length() == 0)
-            break;
-        std::istringstream iss(line);
-        std::string moves;
-        getline(iss, moves, ' ');
-        int score;
-        iss >> score;
-
         Position P;
-        if (iss.fail() || !iss.eof() || P.play(moves) != moves.length() || score < Position::MIN_SCORE || score > Position::MAX_SCORE)
+        P.Play(line);
+        int score = solver.Solve(P);
+
+        moves_with_scores << line << " " << score << "\n";
+        count++;
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> duration = end - start;
+
+        double time_elapsed = duration.count() / 1000;
+        if (time_elapsed >= next_time)
         {
-            std::cerr << "Invalid line (line ignored): " << line << std::endl;
-            continue;
+            std::cout << "Time elapsed: " << duration.count() / 1000 << " seconds, " << count << " lines processed\n";
+            next_time += CHECK_PERIOD;
+            moves_with_scores.flush();
         }
-
-        table->put(P.key3(), score - Position::MIN_SCORE + 1);
-        if (count % 1000000 == 0)
-            std::cerr << count << std::endl;
     }
-
-    OpeningBook book{Position::WIDTH, Position::HEIGHT, table};
-
-    std::ostringstream book_file;
-    book_file << Position::WIDTH << "x" << Position::HEIGHT << "_2" << ".book";
-    book.save(book_file.str());
 }
 
 int main(int argc, char **argv)
 {
-    //   for (int i = 1; i <= 10; i++) {
-    //     generateAllMoves(i);
-    //   }
-    generateOpeningBook();
+    if (argc < 2)
+    {
+        std::cerr << "Please enter arguments\n"
+                  << "1. Explore and print moves to a file: enter <depth>\n"
+                  << "2. Calculate score for the moves: enter <input_file> <result_file>";
+        return 1;
+    }
+    else if (argc == 2)
+    {
+        std::ofstream moves_explored_stream("moves_explored.txt");
+        assert(atoi(argv[1]) >= 0 && atoi(argv[1]) <= 42);
+        int depth = atoi(argv[1]);
+        char pos_str[depth + 1] = {0};
+        explore(Position(), pos_str, depth, moves_explored_stream);
+        std::cout << "Number of moves: " << number_of_explored_moves;
+        return 0;
+    }
+    else if (argc == 3)
+    {
+        std::string input_file = argv[1];
+        std::string result_file = argv[2];
+        calculateScore(input_file, result_file);
+    }
+
+    return 0;
 }
