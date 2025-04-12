@@ -35,15 +35,15 @@ public:
             return;
         }
 
-        size_t count = 0;
+        size_t saved = 0;
         for (unsigned int i = 0; i < T->getSize(); ++i) 
         {
-            if (count >= MAX_ENTRIES) break;
+            if (saved >= MAX_ENTRIES) break;
 
             uint64_t key = T->getKeys()[i];
-            uint8_t move = T->get(key);
+            uint8_t score = T->get(key);
 
-            if (move != 0) 
+            if (score != 0) 
             {
                 // Write lower 7 bytes of key
                 for (int j = 0; j < 7; ++j) 
@@ -52,13 +52,13 @@ public:
                     ofs.write(reinterpret_cast<const char*>(&byte), 1);
                 }
 
-                ofs.write(reinterpret_cast<const char*>(&move), 1);
-                ++count;
+                ofs.write(reinterpret_cast<const char*>(&score), 1);
+                ++saved;
             }
         }
 
         ofs.close();
-        std::cout << "Saved " << count << " positions to " << filename << "\n";
+        std::cout << "Saved " << saved << " positions to " << filename << "\n";
     }
 
     void load(const std::string& filename) 
@@ -79,8 +79,8 @@ public:
                 key |= (uint64_t(buf[i]) << (8 * i));
             }
 
-            uint8_t move = buf[7];
-            T->put(key, move);
+            uint8_t score = buf[7];
+            T->put(key, score);
             ++loaded;
         }
 
@@ -90,8 +90,8 @@ public:
 
     uint8_t getBestMove(uint64_t key) const 
     {
-        uint8_t move = T->get(key);
-        return (move != 0) ? move : NO_MOVE;
+        uint8_t score = T->get(key);
+        return (score != 0) ? score : NO_MOVE;
     }
 
     bool has(uint64_t key) const 

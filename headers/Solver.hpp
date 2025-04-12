@@ -3,6 +3,7 @@
 #include "TranspositionTable.hpp"
 #include "Position.hpp"
 #include "MoveSorter.hpp"
+#include "OpeningBook.hpp"
 
 class Solver
 {
@@ -46,7 +47,7 @@ private:
 
 		// max is the smallest number of moves needed for the current player to win, also used to narrow down window.
 		int max = (Position::WIDTH * Position::HEIGHT - 1 - P.nbMoves()) / 2;
-		if (int val = transTable.get(P.key())) // check if the current state is in transTable or not, if it is, retrieve the value
+		if (int val = transTable->get(P.key())) // check if the current state is in transTable or not, if it is, retrieve the value
 			max = val + Position::MIN_SCORE - 1;
 
 		if (beta > max)
@@ -74,12 +75,13 @@ private:
 		}
 
 		// save the upper bound of the position, minus MIN_SCORE and +1 to make sure the lowest value is 1
-		transTable.put(P.key(), alpha - Position::MIN_SCORE + 1);
+		transTable->put(P.key(), alpha - Position::MIN_SCORE + 1);
 		return alpha;
 	}
 	
 public:
-	TranspositionTable transTable;
+	TranspositionTable *transTable;
+	OpeningBook book {Position::WIDTH, Position::HEIGHT, transTable};
 
 	int solve(const Position &P)
 	{
@@ -138,10 +140,14 @@ public:
 	void reset()
 	{
 		nodeCount = 0;
-		transTable.reset();
+		transTable->reset();
 	}
 
-	Solver() : nodeCount{0}, transTable(8388593)
+	void loadBook(std::string file_name) {
+		book.load(file_name);
+	}
+
+	Solver() : nodeCount{0}, transTable{new TranspositionTable(8388593)}
 	{
 		reset();
 		for (int i = 0; i < Position::WIDTH; i++)
