@@ -2,6 +2,7 @@
 #include <chrono>
 #include "headers/Solver.hpp"
 #include "headers/OpeningBook.hpp"
+#include "headers/OpeningBook.hpp"
 
 using namespace std;
 
@@ -58,8 +59,7 @@ int runTest()
 void findMoveAndCalculateScore()
 {
 	Solver solver;
-	// OpeningBook openingBook(7, 6, &solver.transTable);
-	// openingBook.load("7x6.book");
+	solver.LoadBook("7x6.book");
 
 	string line;
 
@@ -73,19 +73,23 @@ void findMoveAndCalculateScore()
 		}
 		else
 		{
-			// solver.Reset();
 			auto start = chrono::high_resolution_clock::now();
-			unsigned int best_move = solver.FindBestMove(P);
-			int score = solver.Solve(P);
+			int score;
+			unsigned int best_move;
+			if ((int)solver.book.getBestScore(P.Key3()) < 255) {
+				score = (int) solver.book.getBestScore(P.Key3()) + Position::MIN_SCORE - 1;
+			} else {
+				score = solver.Solve(P);
+			}
+			best_move = solver.FindBestMove(P);
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
-
 			cout << line
-					  << ": " << P.nbMoves() << " moves, "
-					  << "Score: " << score
-					  << ", Nodes: " << solver.GetNodeCount()
-					  << ", Time: " << duration.count()
-					  << " ms, Best move: column " << best_move + 1 << "\n";
+			<< ": " << P.nbMoves() << " moves, "
+			<< "Score: " << score
+			<< ", Nodes: " << solver.GetNodeCount()
+			<< ", Time: " << duration.count()
+			<< " ms, Best move: column " << best_move + 1 << "\n";
 		}
 	}
 }
