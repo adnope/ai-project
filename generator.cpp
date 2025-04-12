@@ -7,103 +7,127 @@
 #include <string>
 #include <unordered_set>
 #include <fstream>
-
-std::ofstream moves("moves.txt", std::ios::app);
+#include <cstdlib> 
+#include <chrono>
 
 std::unordered_set<uint64_t> visited;
-const int BUFFER_SIZE = 20;
-std::vector<std::string> buffer;
+int number_of_explored_moves = 0;
 
-int number_of_moves = 0;
-
-void explore(const Position &P, char *pos_str, const int depth)
+void explore(const Position &P, char *pos_str, const int depth, std::ofstream &explored_moves_stream)
 {
-    uint64_t key = P.key3();
+    uint64_t key = P.Key3();
     if (!visited.insert(key).second)
-        return; // already explored position
+        return;
 
     int nb_moves = P.nbMoves();
     if (nb_moves <= depth)
-    {
-        // std::cout << pos_str << std::endl;
-        moves << pos_str << std::endl;
-        number_of_moves++;
-    }
+        explored_moves_stream << pos_str << std::endl;
+        number_of_explored_moves++;
     if (nb_moves >= depth)
-        return; // do not explore at further depth
+        return;
 
-    for (int i = 0; i < Position::WIDTH; i++) // explore all possible moves
-        if (P.canPlay(i) && !P.isWinningMove(i))
+    for (int i = 0; i < Position::WIDTH; i++)
+        if (P.CanPlay(i) && !P.IsWinningMove(i))
         {
             Position P2(P);
             P2.playCol(i);
             pos_str[nb_moves] = '1' + i;
-            explore(P2, pos_str, depth);
+            explore(P2, pos_str, depth, explored_moves_stream);
             pos_str[nb_moves] = 0;
         }
 }
 
-void flushBuffer(const std::string& filename) {
-    std::ofstream out(filename, std::ios::app);
-    for (const std::string& line : buffer) {
-        out << line << "\n";
-    }
-    buffer.clear();
-}
-
-void calculateScore()
+/**
+ * Automatically continue from the last session if the program is terminated while processing.
+ * CHECK_PERIOD is a period of time (in seconds) which determines how often the program prints out its progress into the console.
+ */
+void calculateScore(std::string input_file, std::string result_file)
 {
-    std::ifstream moves_file("movex.txt");
-    Solver solver;
+    auto start = std::chrono::high_resolution_clock::now();
+
     std::string line;
+
+    int lines_done = 0;
+    std::ifstream input(result_file);
+    while (getline(input, line) && !line.empty())
+    {
+        lines_done++;
+    }
+    input.close();
+
+    std::ifstream moves_file(input_file);
+    std::ofstream moves_with_scores(result_file, std::ios::app);
+
+    for (int i = 1; i <= lines_done; i++)
+    {
+        getline(moves_file, line);
+    }
+
+    Solver solver;
+
+    const int CHECK_PERIOD = 10;
+    int count = 0;
+    int next_time = CHECK_PERIOD;
 
     while (getline(moves_file, line))
     {
         Position P;
-        if (P.play(line) != line.length()) {
+        P.Play(line);
+        int score = solver.Solve(P);
+
+        moves_with_scores << line << " " << score << "\n";
+        count++;
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> duration = end - start;
+
+        double time_elapsed = duration.count() / 1000;
+        if (time_elapsed >= next_time)
+        {
+            std::cout << "Time elapsed: " << duration.count() / 1000 << " seconds, " << count << " lines processed\n";
+            next_time += CHECK_PERIOD;
+            moves_with_scores.flush();
+        }
+    }
+}
+
+
+void generate_opening_book(const std::string& input_file) {
+    static constexpr int BOOK_SIZE = 27;
+    static constexpr double LOG_3 = 1.58496250072;
+    static constexpr double DEPTH = 9;
+
+    TranspositionTable* table = new TranspositionTable(1 << BOOK_SIZE);
+
+    std::ifstream in(input_file);
+    if (!in) {
+        std::cerr << "Cannot open file: " << input_file << std::endl;
+        return;
+    }
+
+    long long count = 1;
+    for (std::string line; std::getline(in, line); count++) {
+        if (line.empty()) break;
+
+        std::istringstream iss(line);
+        std::string pos;
+        int score;
+
+        std::getline(iss, pos, ' ');
+        iss >> score;
+
+        Position P;
+        if (iss.fail() || !iss.eof()
+            || P.Play(pos) != pos.length()
+            || score < Position::MIN_SCORE || score > Position::MAX_SCORE) {
             std::cerr << "Invalid line (ignored): " << line << std::endl;
             continue;
         }
 
-        int score = solver.solve(P);
-        std::string line_with_score = line + " " + std::to_string(score);
-        std::cout<<line_with_score << "\n";
-        buffer.emplace_back(line_with_score);
+        table->Put(P.Key3(), score - Position::MIN_SCORE + 1);
 
-        if (buffer.size() >= BUFFER_SIZE) {
-            flushBuffer("moves_withx.txt");
-        }
-    }
-
-    if (!buffer.empty()) {
-        flushBuffer("moves_withx.txt");
-    }
-}
-
-void generate_opening_book() {
-    static constexpr int BOOK_SIZE = 27; 
-    static constexpr double LOG_3 = 1.58496250072; 
-    static constexpr double DEPth = 14;
-    TranspositionTable* table = new TranspositionTable(1<<BOOK_SIZE);
-
-    long long count = 1;
-    for(std::string line; getline(std::cin, line); count++) {
-        if(line.length() == 0) break;
-        std::istringstream iss(line);
-        std::string pos;
-        getline(iss, pos, ' ');
-        int score;
-        iss >> score;
-
-        Position P;
-        if(iss.fail() || !iss.eof()
-            || P.play(pos) != pos.length()
-            || score < Position::MIN_SCORE || score > Position::MAX_SCORE) {  
-        std::cerr << "Invalid line (line ignored): " << line << std::endl;
-        continue;
-        }
-        table->put(P.key3(), score - Position::MIN_SCORE + 1);
-        if(count % 1000000 == 0) std::cerr << count << std::endl;
+        if (count % 1000000 == 0)
+            std::cerr << "Processed " << count << " lines\n";
     }
 
     OpeningBook book{Position::WIDTH, Position::HEIGHT, table};
@@ -113,24 +137,40 @@ void generate_opening_book() {
     book.save(book_file.str());
 }
 
-
 int main(int argc, char **argv)
 {
-    if (argc > 1)
+    if (argc < 2)
     {
-		if (strcmp(argv[1], "-e") == 0 || strcmp(argv[1], "--explore") == 0)
-		{
-            int depth = atoi(argv[1]);
-            char pos_str[depth + 1] = {0};
-            explore(Position(), pos_str, depth);
-            std::cout << "Number of moves: " << number_of_moves;
-		}
-		else if (strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--calculateScore") == 0)
-		{
-			calculateScore();
-		}
-        else generate_opening_book();
+        std::cerr << "Please enter arguments\n"
+                  << "1. Explore and print moves to a file: enter <depth>\n"
+                  << "2. Calculate score for the moves: enter <input_file> <result_file>"
+                  << "3. Generate opening book: enter book <input_file>\n";
+        return 1;
     }
+    else if (argc == 2)
+    {
+        std::ofstream moves_explored_stream("moves_explored.txt");
+        assert(atoi(argv[1]) >= 0 && atoi(argv[1]) <= 42);
+        int depth = atoi(argv[1]);
+        char pos_str[depth + 1] = {0};
+        explore(Position(), pos_str, depth, moves_explored_stream);
+        std::cout << "Number of moves: " << number_of_explored_moves;
+        return 0;
+    }
+    else if (argc == 3)
+    {
+        if (std::string(argv[1]) == "book") 
+        {
+            std::string input_file = argv[2];
+            generate_opening_book(input_file);
+        }
+        else  
+        {
+            std::string input_file = argv[1];
+            std::string result_file = argv[2];
+            calculateScore(input_file, result_file);
+        }
+    }
+    
     return 0;
 }
-    

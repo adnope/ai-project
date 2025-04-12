@@ -2,6 +2,8 @@
 *.exe
 *.out
 *.app
+*.txt
 
 .vscode/
-solver
+main
+draft/

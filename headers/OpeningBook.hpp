@@ -8,79 +8,74 @@
 #include "Position.hpp"
 #include "TranspositionTable.hpp"
 
-class OpeningBook {
+class OpeningBook
+{
 public:
     static constexpr uint8_t NO_MOVE = 255;
-    static constexpr size_t MAX_ENTRIES = 2'500'000; // ~20MB (8 bytes/entry)
+    static constexpr size_t MAX_ENTRIES = 2'500'000;
 
     int width, height;
-    TranspositionTable* T;
+    TranspositionTable *T;
 
-    OpeningBook(int width, int height, TranspositionTable* table)
+    OpeningBook(int width, int height, TranspositionTable *table)
         : width(width), height(height), T(table) {}
 
-    void addPosition(uint64_t key, uint8_t bestMove) 
-    {
-        if (bestMove < Position::WIDTH) {
-            T->put(key, bestMove);
-        }
-    }
 
-    void save(const std::string& filename) const 
+    void save(const std::string &filename) const
     {
         std::ofstream ofs(filename, std::ios::binary);
-        if (!ofs) 
+        if (!ofs)
         {
             std::cerr << "Error: Can't open file " << filename << "\n";
             return;
         }
 
-        size_t saved = 0;
-        for (unsigned int i = 0; i < T->getSize(); ++i) 
+        size_t count = 0;
+        for (unsigned int i = 0; i < T->GetSize(); ++i)
         {
-            if (saved >= MAX_ENTRIES) break;
+            if (count >= MAX_ENTRIES)
+                break;
 
-            uint64_t key = T->getKeys()[i];
-            uint8_t score = T->get(key);
+            uint64_t key = T->GetKeys()[i];
+            uint8_t move = T->Get(key);
 
-            if (score != 0) 
+            if (move != 0)
             {
                 // Write lower 7 bytes of key
-                for (int j = 0; j < 7; ++j) 
+                for (int j = 0; j < 7; ++j)
                 {
                     uint8_t byte = (key >> (8 * j)) & 0xFF;
-                    ofs.write(reinterpret_cast<const char*>(&byte), 1);
+                    ofs.write(reinterpret_cast<const char *>(&byte), 1);
                 }
-
-                ofs.write(reinterpret_cast<const char*>(&score), 1);
-                ++saved;
+                ofs.write(reinterpret_cast<const char *>(&move), 1);
+                ++count;
             }
         }
 
         ofs.close();
-        std::cout << "Saved " << saved << " positions to " << filename << "\n";
+        std::cout << "Saved " << count << " positions to " << filename << "\n";
     }
 
-    void load(const std::string& filename) 
+    void load(const std::string &filename)
     {
         std::ifstream ifs(filename, std::ios::binary);
-        if (!ifs) 
+        if (!ifs)
         {
             std::cerr << "Error: Can't open file " << filename << "\n";
             return;
         }
 
-        uint8_t buf[8];  // 7 bytes key + 1 byte move
+        uint8_t buf[8]; // 7 bytes key + 1 byte move
         size_t loaded = 0;
-        while (ifs.read(reinterpret_cast<char*>(buf), 8)) 
+        while (ifs.read(reinterpret_cast<char *>(buf), 8))
         {
             uint64_t key = 0;
-            for (int i = 0; i < 7; ++i) {
+            for (int i = 0; i < 7; ++i)
+            {
                 key |= (uint64_t(buf[i]) << (8 * i));
             }
-
-            uint8_t score = buf[7];
-            T->put(key, score);
+            uint8_t move = buf[7];
+            T->Put(key, move);
             ++loaded;
         }
 
@@ -88,14 +83,9 @@ public:
         std::cout << "Loaded " << loaded << " positions from " << filename << "\n";
     }
 
-    uint8_t getBestMove(uint64_t key) const 
+    uint8_t getBestScore(uint64_t key) const
     {
-        uint8_t score = T->get(key);
-        return (score != 0) ? score : NO_MOVE;
-    }
-
-    bool has(uint64_t key) const 
-    {
-        return T->get(key) != 0;
+        uint8_t move = T->Get(key);
+        return (move != 0) ? move : NO_MOVE;
     }
 };
