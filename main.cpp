@@ -1,6 +1,5 @@
 #include "headers/Solver.hpp"
 #include "headers/OpeningBook.hpp"
-#include "headers/OpeningBook.hpp"
 
 #include <iostream>
 #include <chrono>
@@ -95,9 +94,12 @@ void findMoveAndCalculateScore()
 			auto start = chrono::high_resolution_clock::now();
 			int score;
 			unsigned int best_move;
-			if ((int)solver.book.getBestScore(P.Key3()) < 255) {
-				score = (int) solver.book.getBestScore(P.Key3()) + Position::MIN_SCORE - 1;
-			} else {
+			if ((int)solver.book.getBestScore(P.Key3()) < 255)
+			{
+				score = (int)solver.book.getBestScore(P.Key3()) + Position::MIN_SCORE - 1;
+			}
+			else
+			{
 				score = solver.Solve(P);
 			}
 			best_move = solver.FindBestMove(P);
