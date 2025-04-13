@@ -3,6 +3,7 @@
 #include "TranspositionTable.hpp"
 #include "Position.hpp"
 #include "MoveSorter.hpp"
+#include <iostream>
 
 class Solver
 {
@@ -27,7 +28,7 @@ private:
 		assert(!P.CanWinNext());
 
 		nodeCount++;
-		
+
 		uint64_t next = P.PossibleNonLosingMoves();
 		if (next == 0)
 			return -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2; // opponent wins since there are no possbile non-losing move
@@ -46,7 +47,7 @@ private:
 
 		// max is the smallest number of moves needed for the current player to win, also used to narrow down window.
 		int max = (Position::WIDTH * Position::HEIGHT - 1 - P.nbMoves()) / 2;
-		if (int val = transTable.Get(P.Key())) // check if the current state is in transTable or not, if it is, retrieve the value
+		if (int val = int(transTable.Get(P.Key()))) // check if the current state is in transTable or not, if it is, retrieve the value
 			max = val + Position::MIN_SCORE - 1;
 
 		if (beta > max)
@@ -77,12 +78,17 @@ private:
 		transTable.Put(P.Key(), alpha - Position::MIN_SCORE + 1);
 		return alpha;
 	}
-	
+
 public:
 	TranspositionTable transTable;
 
 	int Solve(const Position &P)
 	{
+		if (transTable.Get(P.Key()) != 0)
+		{
+			return int(transTable.Get(P.Key())) + Position::MIN_SCORE - 1;
+		}
+
 		if (P.CanWinNext()) // check if win in one move as the Negamax function does not support this case.
 			return (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
 
@@ -105,7 +111,7 @@ public:
 		return min;
 	}
 
-	unsigned int FindBestMove(const Position &P)
+	int FindBestMove(const Position &P)
 	{
 		int best_col;
 		int best_score = -100;
