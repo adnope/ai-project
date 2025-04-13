@@ -16,5 +16,5 @@ run: all
 	./$(TARGET) $(ARGS)
 
 generate:
-	g++ generator.cpp -o generator
+	$(CXX) $(CXXFLAGS) -o generator generator.cpp
 	./generator $(ARGS)

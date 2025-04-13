@@ -9,10 +9,26 @@
 #include <fstream>
 #include <chrono>
 
-std::unordered_set<uint64_t> visited;
-int number_of_explored_moves = 0;
+/**
+ * How to use the generator to generate an opening book:
+ * 
+ * First, you need to run the explore() function to generate all the moves up to a specific depth,
+ * which can be accomplished by running: make generate ARGS="depth" (replace 'depth' with your depth).
+ * The moves then will be saved to a file called "moves_explored.txt"
+ * 
+ * After that, run the calculateScore() function, which will take your moves file, calculate
+ * the score of each moves, then saved all of the scores to an output file (I'll call it results.txt).
+ * Run: make generate ARGS="moves_explored.txt results.txt"
+ * Note: this step may take a very long time, if you terminate the program while it's running, it
+ * will automatically continue from where you left, so don't worry :3
+ * 
+ * When you've got the results.txt file, pass it to the generateOpeningBook() function to get an opening
+ * book, then put the opening book into the project's directory, the loadBook() function of the AI will
+ * then behave correctly.
+ */
 
-void explore(const Position &P, char *pos_str, const int depth, std::ofstream &explored_moves_stream)
+void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &visited,
+             int &number_of_explored_moves, const int depth, std::ofstream &explored_moves_stream)
 {
     uint64_t key = P.Key3();
     if (!visited.insert(key).second)
@@ -20,8 +36,11 @@ void explore(const Position &P, char *pos_str, const int depth, std::ofstream &e
 
     int nb_moves = P.nbMoves();
     if (nb_moves <= depth)
+    {
+
         explored_moves_stream << pos_str << std::endl;
         number_of_explored_moves++;
+    }
     if (nb_moves >= depth)
         return;
 
@@ -31,16 +50,12 @@ void explore(const Position &P, char *pos_str, const int depth, std::ofstream &e
             Position P2(P);
             P2.playCol(i);
             pos_str[nb_moves] = '1' + i;
-            explore(P2, pos_str, depth, explored_moves_stream);
+            explore(P2, pos_str, visited, number_of_explored_moves, depth, explored_moves_stream);
             pos_str[nb_moves] = 0;
         }
 }
 
-/**
- * Automatically continue from the last session if the program is terminated while processing.
- * CHECK_PERIOD is a period of time (in seconds) which determines how often the program prints out its progress into the console.
- */
-void calculateScore(std::string input_file, std::string result_file)
+void calculateScore(char* input_file, char* result_file)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -90,6 +105,12 @@ void calculateScore(std::string input_file, std::string result_file)
     }
 }
 
+void generateOpeningBook() {
+    Solver solver;
+    OpeningBook openingBook(&solver.transTable);
+    openingBook.save("depth_10-11_scores.txt", "book.txt");
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2)
@@ -99,21 +120,26 @@ int main(int argc, char **argv)
                   << "2. Calculate score for the moves: enter <input_file> <result_file>";
         return 1;
     }
+    else if (argc == 2 && !std::strcmp(argv[1], "-o"))
+    {
+        generateOpeningBook();
+    }
     else if (argc == 2)
     {
         std::ofstream moves_explored_stream("moves_explored.txt");
+        std::unordered_set<uint64_t> visited;
+        int number_of_explored_moves = 0;
+
         assert(atoi(argv[1]) >= 0 && atoi(argv[1]) <= 42);
         int depth = atoi(argv[1]);
         char pos_str[depth + 1] = {0};
-        explore(Position(), pos_str, depth, moves_explored_stream);
+        explore(Position(), pos_str, visited, number_of_explored_moves, depth, moves_explored_stream);
         std::cout << "Number of moves: " << number_of_explored_moves;
         return 0;
     }
     else if (argc == 3)
     {
-        std::string input_file = argv[1];
-        std::string result_file = argv[2];
-        calculateScore(input_file, result_file);
+        calculateScore(argv[1], argv[2]);
     }
 
     return 0;
