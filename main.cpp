@@ -1,25 +1,30 @@
 #include "headers/Solver.hpp"
-#include "headers/OpeningBook.hpp"
 
 #include <iostream>
 #include <chrono>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
 void loadOpeningBook(Solver &solver, string book_name)
 {
+	string line;
 	string move;
 	int score;
-	ifstream ifs(book_name);
 	int count = 0;
-	while (ifs >> move && ifs >> score)
+	ifstream ifs(book_name);
+	while (getline(ifs, line))
 	{
+		istringstream iss(line);
+		iss >> move >> score;
 		Position P;
 		P.Play(move);
-		solver.transTable.Put(P.Key(), uint8_t(score - Position::MIN_SCORE + 1));
+		solver.transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
 		count++;
 	}
-	cout << "Loaded " << count << " moves from " << book_name << "\n";
+	cout << "Loaded " << count << " positions from " << book_name << "\n";
+	cout << "Collisions count: " << solver.transTable.collisions << endl;
 }
 
 int runTest()
@@ -33,7 +38,7 @@ int runTest()
 		return 1;
 	}
 
-	loadOpeningBook(solver, "depth_9_scores_1-265999.txt");
+	loadOpeningBook(solver, "depth_11_scores.book");
 
 	string line;
 	int correct_score;
@@ -76,9 +81,8 @@ int runTest()
 void findMoveAndCalculateScore()
 {
 	Solver solver;
-	solver.LoadBook("7x6.book");
 
-	loadOpeningBook(solver, "depth_9_scores_1-265999.txt");
+	loadOpeningBook(solver, "depth_11_scores.book");
 
 	string line;
 	while (getline(cin, line))
@@ -92,20 +96,53 @@ void findMoveAndCalculateScore()
 		else
 		{
 			auto start = chrono::high_resolution_clock::now();
+
 			int score;
 			unsigned int best_move;
-			if ((int)solver.book.getBestScore(P.Key3()) < 255)
-			{
-				score = (int)solver.book.getBestScore(P.Key3()) + Position::MIN_SCORE - 1;
-			}
-			else
-			{
-				score = solver.Solve(P);
-			}
+
+			score = solver.Solve(P);
 			best_move = solver.FindBestMove(P);
+
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
 			cout << line
+				 << ": " << P.nbMoves() << " moves, "
+				 << "Score: " << score
+				 << ", Nodes: " << solver.GetNodeCount()
+				 << ", Time: " << duration.count() << " ms"
+				 << ", Best move: column " << best_move + 1 << "\n";
+		}
+	}
+}
+
+void continuouslyFindMoveAndCalculateScore()
+{
+	Solver solver;
+	loadOpeningBook(solver, "depth_11_scores.book");
+	
+	string current_sequence;
+	Position P;
+	string line;
+	while (getline(cin, line))
+	{
+		if (P.Play(line) != line.size())
+		{
+			cerr << "Invalid move: " << line << endl;
+		}
+		else
+		{
+			current_sequence += line;
+			auto start = chrono::high_resolution_clock::now();
+
+			int score;
+			unsigned int best_move;
+
+			score = solver.Solve(P);
+			best_move = solver.FindBestMove(P);
+
+			auto end = chrono::high_resolution_clock::now();
+			chrono::duration<double, milli> duration = end - start;
+			cout << current_sequence
 				 << ": " << P.nbMoves() << " moves, "
 				 << "Score: " << score
 				 << ", Nodes: " << solver.GetNodeCount()
@@ -181,9 +218,9 @@ int startGame()
 {
 	Solver solver;
 
-	loadOpeningBook(solver, "depth_9_scores_1-265999");
+	loadOpeningBook(solver, "depth_11_scores.book");
 
-	string sequence = "444344535356";
+	string sequence = "";
 	Position P;
 	P.Play(sequence);
 
@@ -260,11 +297,16 @@ int main(int argc, char **argv)
 	{
 		if (strcmp(argv[1], "-t") == 0 || strcmp(argv[1], "--test") == 0)
 		{
+			// The current test is tests/10_moves.test
 			runTest();
 		}
 		else if (strcmp(argv[1], "-f") == 0 || strcmp(argv[1], "--find_move") == 0)
 		{
 			findMoveAndCalculateScore();
+		}
+		else if (strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--continuous_find") == 0)
+		{
+			continuouslyFindMoveAndCalculateScore();
 		}
 		else if (strcmp(argv[1], "-p") == 0 || strcmp(argv[1], "--play") == 0)
 		{
@@ -278,7 +320,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		findMoveAndCalculateScore();
+		startGame();
 	}
 
 	return 0;

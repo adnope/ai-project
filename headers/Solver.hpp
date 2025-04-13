@@ -3,8 +3,6 @@
 #include "TranspositionTable.hpp"
 #include "Position.hpp"
 #include "MoveSorter.hpp"
-#include <iostream>
-#include "OpeningBook.hpp"
 
 class Solver
 {
@@ -48,7 +46,7 @@ private:
 
 		// max is the smallest number of moves needed for the current player to win, also used to narrow down window.
 		int max = (Position::WIDTH * Position::HEIGHT - 1 - P.nbMoves()) / 2;
-		if (int val = int(transTable.Get(P.Key()))) // check if the current state is in transTable or not, if it is, retrieve the value
+		if (int val = int(transTable.Get(P.Key3()))) // check if the current state is in transTable or not, if it is, retrieve the value
 			max = val + Position::MIN_SCORE - 1;
 
 		if (beta > max)
@@ -76,21 +74,18 @@ private:
 		}
 
 		// save the upper bound of the position, minus MIN_SCORE and +1 to make sure the lowest value is 1
-		transTable.Put(P.Key(), alpha - Position::MIN_SCORE + 1);
+		transTable.Put(P.Key3(), alpha - Position::MIN_SCORE + 1);
 		return alpha;
 	}
 
 public:
 	TranspositionTable transTable;
-	OpeningBook book;
 
 	int Solve(const Position &P)
 	{
-		if (transTable.Get(P.Key()) != 0)
-		{
-			return int(transTable.Get(P.Key())) + Position::MIN_SCORE - 1;
+		if (transTable.Get(P.Key3()) != 0) {
+			return int(transTable.Get(P.Key3())) + Position::MIN_SCORE - 1;
 		}
-
 		if (P.CanWinNext()) // check if win in one move as the Negamax function does not support this case.
 			return (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
 
@@ -115,6 +110,7 @@ public:
 
 	int FindBestMove(const Position &P)
 	{
+		if (P.isEmpty()) return (Position::WIDTH + 1) / 2 - 1;
 		int best_col;
 		int best_score = -100;
 		for (int col = 0; col < Position::WIDTH; ++col)
@@ -128,12 +124,7 @@ public:
 				Position P2(P);
 				P2.playCol(col);
 				int score;
-				if ((int) book.getBestScore(P2.Key3()) < 255) {
-					score = -(int) book.getBestScore(P2.Key3()) + Position::MIN_SCORE - 1;
-				} else {
-					score = -Solve(P2);
-
-				}
+				score = -Solve(P2);
 				if (score > best_score)
 				{
 					best_score = score;
@@ -155,11 +146,7 @@ public:
 		transTable.Reset();
 	}
 
-	void LoadBook(std::string filename) {
-		book.load(filename);
-	}
-
-	Solver() : nodeCount{0}, transTable(8388593), book(7, 6, &transTable)
+	Solver() : nodeCount{0}, transTable(8388593)
 	{
 		Reset();
 		for (int i = 0; i < Position::WIDTH; i++)
