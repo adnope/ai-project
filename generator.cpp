@@ -7,22 +7,22 @@
 #include <string>
 #include <unordered_set>
 #include <fstream>
-#include <cstdlib> 
+#include <cstdlib>
 #include <chrono>
 
 /**
  * How to use the generator to generate an opening book:
- * 
+ *
  * First, you need to run the explore() function to generate all the moves up to a specific depth,
  * which can be accomplished by running: make generate ARGS="depth" (replace 'depth' with your depth).
  * The moves then will be saved to a file called "moves_explored.txt"
- * 
+ *
  * After that, run the calculateScore() function, which will take your moves file, calculate
  * the score of each moves, then saved all of the scores to an output file (I'll call it results.txt).
  * Run: make generate ARGS="moves_explored.txt results.txt"
  * Note: this step may take a very long time, if you terminate the program while it's running, it
  * will automatically continue from where you left, so don't worry :3
- * 
+ *
  * When you've got the results.txt file, pass it to the generateOpeningBook() function to get an opening
  * book, then put the opening book into the project's directory, the loadBook() function of the AI will
  * then behave correctly.
@@ -56,7 +56,7 @@ void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &vis
         }
 }
 
-void calculateScore(char* input_file, char* result_file)
+void calculateScore(char *input_file, char *result_file)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -106,23 +106,26 @@ void calculateScore(char* input_file, char* result_file)
     }
 }
 
-
-void generate_opening_book(const std::string& input_file) {
+void generateOpeningBook(const std::string &input_file)
+{
     static constexpr int BOOK_SIZE = 27;
     static constexpr double LOG_3 = 1.58496250072;
     static constexpr double DEPTH = 9;
 
-    TranspositionTable* table = new TranspositionTable(1 << BOOK_SIZE);
+    TranspositionTable *table = new TranspositionTable(1 << BOOK_SIZE);
 
     std::ifstream in(input_file);
-    if (!in) {
+    if (!in)
+    {
         std::cerr << "Cannot open file: " << input_file << std::endl;
         return;
     }
 
     long long count = 1;
-    for (std::string line; std::getline(in, line); count++) {
-        if (line.empty()) break;
+    for (std::string line; std::getline(in, line); count++)
+    {
+        if (line.empty())
+            break;
 
         std::istringstream iss(line);
         std::string pos;
@@ -132,9 +135,8 @@ void generate_opening_book(const std::string& input_file) {
         iss >> score;
 
         Position P;
-        if (iss.fail() || !iss.eof()
-            || P.Play(pos) != pos.length()
-            || score < Position::MIN_SCORE || score > Position::MAX_SCORE) {
+        if (iss.fail() || !iss.eof() || P.Play(pos) != pos.length() || score < Position::MIN_SCORE || score > Position::MAX_SCORE)
+        {
             std::cerr << "Invalid line (ignored): " << line << std::endl;
             continue;
         }
@@ -162,37 +164,27 @@ int main(int argc, char **argv)
                   << "3. Generate opening book: enter book <input_file>\n";
         return 1;
     }
-    else if (argc == 2 && !std::strcmp(argv[1], "-o"))
-    {
-        generateOpeningBook();
-    }
-    else if (argc == 2)
+    else if (argc == 2 && (atoi(argv[1]) >= 0 && atoi(argv[1]) <= 42))
     {
         std::ofstream moves_explored_stream("moves_explored.txt");
         std::unordered_set<uint64_t> visited;
         int number_of_explored_moves = 0;
 
-        assert(atoi(argv[1]) >= 0 && atoi(argv[1]) <= 42);
         int depth = atoi(argv[1]);
         char pos_str[depth + 1] = {0};
         explore(Position(), pos_str, visited, number_of_explored_moves, depth, moves_explored_stream);
         std::cout << "Number of moves: " << number_of_explored_moves;
         return 0;
     }
+    else if (argc == 2 && argv[1] == "book")
+    {
+        std::string input_file = argv[2];
+        generateOpeningBook(input_file);
+    }
     else if (argc == 3)
     {
-        if (std::string(argv[1]) == "book") 
-        {
-            std::string input_file = argv[2];
-            generate_opening_book(input_file);
-        }
-        else  
-        {
-            std::string input_file = argv[1];
-            std::string result_file = argv[2];
-            calculateScore(input_file, result_file);
-        }
+        calculateScore(argv[1], argv[2]);
     }
-    
+
     return 0;
 }

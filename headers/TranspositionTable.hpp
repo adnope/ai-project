@@ -55,8 +55,31 @@ public:
 		return 0;
 	}
 
+	using partial_key_t = uint64_t;
+	using value_t = uint8_t;
+
+	const uint64_t *GetKeys() const
+	{
+		return reinterpret_cast<const uint64_t *>(&T[0]);
+	}
+
+	const uint8_t *GetValues() const
+	{
+		return reinterpret_cast<const uint8_t *>(&T[0].val);
+	}
+
 	size_t GetSize() const
 	{
 		return T.size();
+	}
+
+	int GetKeySize() const
+	{
+		return sizeof(partial_key_t);
+	}
+
+	int GetValueSize() const
+	{
+		return sizeof(value_t);
 	}
 };
