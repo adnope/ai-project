@@ -1,7 +1,4 @@
-*.o
 *.exe
-*.out
-*.app
 *.txt
 
 .vscode/
