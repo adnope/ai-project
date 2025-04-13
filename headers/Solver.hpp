@@ -4,6 +4,7 @@
 #include "Position.hpp"
 #include "MoveSorter.hpp"
 #include <iostream>
+#include "OpeningBook.hpp"
 
 class Solver
 {
@@ -81,6 +82,7 @@ private:
 
 public:
 	TranspositionTable transTable;
+	OpeningBook book;
 
 	int Solve(const Position &P)
 	{
@@ -125,7 +127,13 @@ public:
 				}
 				Position P2(P);
 				P2.playCol(col);
-				int score = -Solve(P2);
+				int score;
+				if ((int) book.getBestScore(P2.Key3()) < 255) {
+					score = -(int) book.getBestScore(P2.Key3()) + Position::MIN_SCORE - 1;
+				} else {
+					score = -Solve(P2);
+
+				}
 				if (score > best_score)
 				{
 					best_score = score;
@@ -147,7 +155,11 @@ public:
 		transTable.Reset();
 	}
 
-	Solver() : nodeCount{0}, transTable(8388593)
+	void LoadBook(std::string filename) {
+		book.load(filename);
+	}
+
+	Solver() : nodeCount{0}, transTable(8388593), book(7, 6, &transTable)
 	{
 		Reset();
 		for (int i = 0; i < Position::WIDTH; i++)

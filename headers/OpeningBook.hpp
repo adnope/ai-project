@@ -12,7 +12,7 @@ class OpeningBook
 {
 public:
     static constexpr uint8_t NO_MOVE = 255;
-    static constexpr size_t MAX_ENTRIES = 2'500'000; // ~20MB (8 bytes/entry)
+    static constexpr size_t MAX_ENTRIES = 2'500'000;
 
     int width, height;
     TranspositionTable *T;
@@ -20,13 +20,6 @@ public:
     OpeningBook(int width, int height, TranspositionTable *table)
         : width(width), height(height), T(table) {}
 
-    void addPosition(uint64_t key, uint8_t bestMove)
-    {
-        if (bestMove < Position::WIDTH)
-        {
-            T->Put(key, bestMove);
-        }
-    }
 
     void save(const std::string &filename) const
     {
@@ -54,7 +47,6 @@ public:
                     uint8_t byte = (key >> (8 * j)) & 0xFF;
                     ofs.write(reinterpret_cast<const char *>(&byte), 1);
                 }
-
                 ofs.write(reinterpret_cast<const char *>(&move), 1);
                 ++count;
             }
@@ -82,7 +74,6 @@ public:
             {
                 key |= (uint64_t(buf[i]) << (8 * i));
             }
-
             uint8_t move = buf[7];
             T->Put(key, move);
             ++loaded;
@@ -92,14 +83,9 @@ public:
         std::cout << "Loaded " << loaded << " positions from " << filename << "\n";
     }
 
-    uint8_t getBestMove(uint64_t key) const
+    uint8_t getBestScore(uint64_t key) const
     {
         uint8_t move = T->Get(key);
         return (move != 0) ? move : NO_MOVE;
-    }
-
-    bool has(uint64_t key) const
-    {
-        return T->Get(key) != 0;
     }
 };

@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_set>
 #include <fstream>
+#include <cstdlib> 
 #include <chrono>
 
 /**
@@ -105,10 +106,50 @@ void calculateScore(char* input_file, char* result_file)
     }
 }
 
-void generateOpeningBook() {
-    Solver solver;
-    OpeningBook openingBook(&solver.transTable);
-    openingBook.save("depth_10-11_scores.txt", "book.txt");
+
+void generate_opening_book(const std::string& input_file) {
+    static constexpr int BOOK_SIZE = 27;
+    static constexpr double LOG_3 = 1.58496250072;
+    static constexpr double DEPTH = 9;
+
+    TranspositionTable* table = new TranspositionTable(1 << BOOK_SIZE);
+
+    std::ifstream in(input_file);
+    if (!in) {
+        std::cerr << "Cannot open file: " << input_file << std::endl;
+        return;
+    }
+
+    long long count = 1;
+    for (std::string line; std::getline(in, line); count++) {
+        if (line.empty()) break;
+
+        std::istringstream iss(line);
+        std::string pos;
+        int score;
+
+        std::getline(iss, pos, ' ');
+        iss >> score;
+
+        Position P;
+        if (iss.fail() || !iss.eof()
+            || P.Play(pos) != pos.length()
+            || score < Position::MIN_SCORE || score > Position::MAX_SCORE) {
+            std::cerr << "Invalid line (ignored): " << line << std::endl;
+            continue;
+        }
+
+        table->Put(P.Key3(), score - Position::MIN_SCORE + 1);
+
+        if (count % 1000000 == 0)
+            std::cerr << "Processed " << count << " lines\n";
+    }
+
+    OpeningBook book{Position::WIDTH, Position::HEIGHT, table};
+
+    std::ostringstream book_file;
+    book_file << Position::WIDTH << "x" << Position::HEIGHT << ".book";
+    book.save(book_file.str());
 }
 
 int main(int argc, char **argv)
@@ -117,7 +158,8 @@ int main(int argc, char **argv)
     {
         std::cerr << "Please enter arguments\n"
                   << "1. Explore and print moves to a file: enter <depth>\n"
-                  << "2. Calculate score for the moves: enter <input_file> <result_file>";
+                  << "2. Calculate score for the moves: enter <input_file> <result_file>"
+                  << "3. Generate opening book: enter book <input_file>\n";
         return 1;
     }
     else if (argc == 2 && !std::strcmp(argv[1], "-o"))
@@ -139,8 +181,18 @@ int main(int argc, char **argv)
     }
     else if (argc == 3)
     {
-        calculateScore(argv[1], argv[2]);
+        if (std::string(argv[1]) == "book") 
+        {
+            std::string input_file = argv[2];
+            generate_opening_book(input_file);
+        }
+        else  
+        {
+            std::string input_file = argv[1];
+            std::string result_file = argv[2];
+            calculateScore(input_file, result_file);
+        }
     }
-
+    
     return 0;
 }

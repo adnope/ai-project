@@ -1,5 +1,6 @@
 #include "headers/Solver.hpp"
 #include "headers/OpeningBook.hpp"
+#include "headers/OpeningBook.hpp"
 
 #include <iostream>
 #include <chrono>
@@ -76,6 +77,7 @@ int runTest()
 void findMoveAndCalculateScore()
 {
 	Solver solver;
+	solver.LoadBook("7x6.book");
 
 	loadOpeningBook(solver, "depth_9_scores_1-265999.txt");
 
@@ -91,11 +93,16 @@ void findMoveAndCalculateScore()
 		else
 		{
 			auto start = chrono::high_resolution_clock::now();
-			unsigned int best_move = solver.FindBestMove(P);
-			int score = solver.Solve(P);
+			int score;
+			unsigned int best_move;
+			if ((int)solver.book.getBestScore(P.Key3()) < 255) {
+				score = (int) solver.book.getBestScore(P.Key3()) + Position::MIN_SCORE - 1;
+			} else {
+				score = solver.Solve(P);
+			}
+			best_move = solver.FindBestMove(P);
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
-
 			cout << line
 				 << ": " << P.nbMoves() << " moves, "
 				 << "Score: " << score
