@@ -40,7 +40,7 @@ void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &vis
         explored_moves_stream << pos_str << std::endl;
         number_of_explored_moves++;
     }
-    if (nb_moves >= depth)
+    if (nb_moves > depth)
         return;
 
     for (int i = 0; i < Position::WIDTH; i++)
