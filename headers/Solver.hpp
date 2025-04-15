@@ -146,7 +146,7 @@ public:
 		transTable.Reset();
 	}
 
-	Solver() : nodeCount{0}, transTable(8388593)
+	Solver() : nodeCount{0}, transTable(16777259)
 	{
 		Reset();
 		for (int i = 0; i < Position::WIDTH; i++)

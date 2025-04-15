@@ -95,6 +95,7 @@ void findMoveAndCalculateScore()
 		}
 		else
 		{
+			if (P.nbMoves() == 11) solver.Reset();
 			auto start = chrono::high_resolution_clock::now();
 
 			int score;
@@ -119,7 +120,7 @@ void continuouslyFindMoveAndCalculateScore()
 {
 	Solver solver;
 	loadOpeningBook(solver, "depth_11_scores.book");
-	
+
 	string current_sequence;
 	Position P;
 	string line;
@@ -131,6 +132,7 @@ void continuouslyFindMoveAndCalculateScore()
 		}
 		else
 		{
+			if (P.nbMoves() == 11) solver.Reset();
 			current_sequence += line;
 			auto start = chrono::high_resolution_clock::now();
 
@@ -214,7 +216,7 @@ void printConnectFourBoard(const string &moves)
 	cout << endl;
 }
 
-int startGame()
+void startGame()
 {
 	Solver solver;
 
@@ -287,9 +289,29 @@ int startGame()
 		sequence += to_string(ai_move + 1);
 		cout << "Bot has played: column " << ai_move + 1 << endl;
 	}
-
-	return 0;
 }
+
+// void botVersusBot()
+// {
+// 	Position P;
+// 	string current_sequence = "";
+
+// 	Solver solver;
+// 	bool turn = 0;
+// 	while (1)
+// 	{
+// 		int move = solver.FindBestMove(P);
+// 		if (P.IsWinningMove(move))
+// 		{
+// 			cout << ""
+// 			break;
+// 		}
+// 		if (P.CanPlay(move))
+// 		{
+
+// 		}
+// 	}
+// }
 
 int main(int argc, char **argv)
 {
