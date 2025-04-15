@@ -4,46 +4,58 @@
 #include <cstring>
 #include <cassert>
 #include <cstdint>
-#include <unordered_map>
-#include <utility>
 
 class TranspositionTable
 {
 private:
-	std::unordered_map<uint64_t, uint8_t> T;
-
-public:
-	TranspositionTable(unsigned int size)
+	struct Entry
 	{
-		assert(size > 0);
-		T.reserve(size);
+		uint64_t key;
+		uint8_t val;
+	};
+
+	std::vector<Entry> T;
+
+	unsigned int index(uint64_t key) const
+	{
+		return key % T.size();
 	}
 
-	uint64_t collisions = 0;
+public:
+	int collisions = 0;
+
+	TranspositionTable(unsigned int size) : T(size)
+	{
+		assert(size > 0);
+	}
 
 	void Reset()
 	{
-		T.clear();
+		memset(&T[0], 0, T.size() * sizeof(Entry));
 	}
 
 	void Put(uint64_t key, uint8_t val)
 	{
-		if (T.find(key) != T.end())
+		unsigned int i = index(key);
+		while (T[i].key != 0 && T[i].key != key)
 		{
+			i = (i + 1) % T.size();
 			collisions++;
-			return;
 		}
-		T.emplace(key, val);
+		T[i].key = key;
+		T[i].val = val;
 	}
 
 	uint8_t Get(uint64_t key) const
 	{
-		if (auto entry = T.find(key); entry != T.end())
+		unsigned int i = index(key);
+		while (T[i].key != 0)
 		{
-			return entry->second;
+			if (T[i].key == key)
+				return T[i].val;
+			i = (i + 1) % T.size();
 		}
-		else
-			return 0;
+		return 0;
 	}
 
 	size_t GetSize() const
