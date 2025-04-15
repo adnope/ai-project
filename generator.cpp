@@ -1,11 +1,12 @@
 #include "headers/Position.hpp"
 #include "headers/Solver.hpp"
+#include "headers/OpeningBook.hpp"
 
 #include <iostream>
 #include <unordered_set>
 #include <fstream>
 #include <chrono>
-
+#include <sstream>
 /**
  * How to use the generator to generate an opening book:
  *
@@ -114,6 +115,51 @@ void calculateScore(char *input_file, char *result_file)
     }
 }
 
+void generate_opening_book(const std::string& input_file) {
+    static constexpr int BOOK_SIZE = 27;
+    static constexpr double LOG_3 = 1.58496250072;
+    static constexpr double DEPTH = 9;
+
+    TranspositionTable* table = new TranspositionTable(1 << BOOK_SIZE);
+
+    std::ifstream in(input_file);
+    if (!in) {
+        std::cerr << "Cannot open file: " << input_file << std::endl;
+        return;
+    }
+
+    long long count = 1;
+    for (std::string line; std::getline(in, line); count++) {
+        if (line.empty()) break;
+
+        std::istringstream iss(line);
+        std::string pos;
+        int score;
+
+        std::getline(iss, pos, ' ');
+        iss >> score;
+
+        Position P;
+        if (iss.fail() || !iss.eof()
+            || P.Play(pos) != pos.length()
+            || score < Position::MIN_SCORE || score > Position::MAX_SCORE) {
+            std::cerr << "Invalid line (ignored): " << line << std::endl;
+            continue;
+        }
+
+        table->Put(P.Key3(), score - Position::MIN_SCORE + 1);
+
+        if (count % 1000000 == 0)
+            std::cerr << "Processed " << count << " lines\n";
+    }
+
+    OpeningBook book = OpeningBook(table);
+
+    std::ostringstream book_file;
+    book_file << "depth_11_scores.book";;
+    book.save(book_file.str());
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2)
@@ -147,8 +193,17 @@ int main(int argc, char **argv)
     }
     else if (argc == 3)
     {
-        calculateScore(argv[1], argv[2]);
+        if (std::string(argv[1]) == "book") 
+        {
+            std::string input_file = argv[2];
+            generate_opening_book(input_file);
+        }
+        else  
+        {
+            calculateScore(argv[1], argv[2]);
+        }
     }
+    
 
     return 0;
 }

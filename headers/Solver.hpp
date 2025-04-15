@@ -3,6 +3,7 @@
 #include "TranspositionTable.hpp"
 #include "Position.hpp"
 #include "MoveSorter.hpp"
+#include "OpeningBook.hpp"
 
 class Solver
 {
@@ -80,6 +81,7 @@ private:
 
 public:
 	TranspositionTable transTable;
+	OpeningBook book = OpeningBook(&transTable);
 
 	int Solve(const Position &P)
 	{
@@ -140,13 +142,17 @@ public:
 		return nodeCount;
 	}
 
+	void LoadBook(std::string filename) {
+		book.load(filename);
+	}
+
 	void Reset()
 	{
 		nodeCount = 0;
 		transTable.Reset();
 	}
 
-	Solver() : nodeCount{0}, transTable(8388593)
+	Solver() : nodeCount{0}, transTable(16777259)
 	{
 		Reset();
 		for (int i = 0; i < Position::WIDTH; i++)

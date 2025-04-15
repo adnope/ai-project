@@ -7,26 +7,6 @@
 
 using namespace std;
 
-void loadOpeningBook(Solver &solver, string book_name)
-{
-	string line;
-	string move;
-	int score;
-	int count = 0;
-	ifstream ifs(book_name);
-	while (getline(ifs, line))
-	{
-		istringstream iss(line);
-		iss >> move >> score;
-		Position P;
-		P.Play(move);
-		solver.transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
-		count++;
-	}
-	cout << "Loaded " << count << " positions from " << book_name << "\n";
-	cout << "Collisions count: " << solver.transTable.collisions << endl;
-}
-
 int runTest()
 {
 	Solver solver;
@@ -38,7 +18,8 @@ int runTest()
 		return 1;
 	}
 
-	loadOpeningBook(solver, "depth_11_scores.book");
+	solver.LoadBook("depth_11_scores.book");
+
 
 	string line;
 	int correct_score;
@@ -81,8 +62,8 @@ int runTest()
 void findMoveAndCalculateScore()
 {
 	Solver solver;
+	solver.LoadBook("depth_11_scores.book");
 
-	loadOpeningBook(solver, "depth_11_scores.book");
 
 	string line;
 	while (getline(cin, line))
@@ -95,6 +76,7 @@ void findMoveAndCalculateScore()
 		}
 		else
 		{
+			if (P.nbMoves() == 11) solver.Reset();
 			auto start = chrono::high_resolution_clock::now();
 
 			int score;
@@ -118,8 +100,8 @@ void findMoveAndCalculateScore()
 void continuouslyFindMoveAndCalculateScore()
 {
 	Solver solver;
-	loadOpeningBook(solver, "depth_11_scores.book");
-	
+	solver.LoadBook("depth_11_scores.book");
+
 	string current_sequence;
 	Position P;
 	string line;
@@ -131,6 +113,7 @@ void continuouslyFindMoveAndCalculateScore()
 		}
 		else
 		{
+			if (P.nbMoves() == 11) solver.Reset();
 			current_sequence += line;
 			auto start = chrono::high_resolution_clock::now();
 
@@ -214,11 +197,11 @@ void printConnectFourBoard(const string &moves)
 	cout << endl;
 }
 
-int startGame()
+void startGame()
 {
 	Solver solver;
+	solver.LoadBook("depth_11_scores.book");
 
-	loadOpeningBook(solver, "depth_11_scores.book");
 
 	string sequence = "";
 	Position P;
@@ -287,9 +270,29 @@ int startGame()
 		sequence += to_string(ai_move + 1);
 		cout << "Bot has played: column " << ai_move + 1 << endl;
 	}
-
-	return 0;
 }
+
+// void botVersusBot()
+// {
+// 	Position P;
+// 	string current_sequence = "";
+
+// 	Solver solver;
+// 	bool turn = 0;
+// 	while (1)
+// 	{
+// 		int move = solver.FindBestMove(P);
+// 		if (P.IsWinningMove(move))
+// 		{
+// 			cout << ""
+// 			break;
+// 		}
+// 		if (P.CanPlay(move))
+// 		{
+
+// 		}
+// 	}
+// }
 
 int main(int argc, char **argv)
 {
