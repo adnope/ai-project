@@ -115,16 +115,16 @@ void calculateScore(char *input_file, char *result_file)
     }
 }
 
-void generate_opening_book(const std::string& input_file) {
+void generateOpeningBook(const std::string& book_name) {
     static constexpr int BOOK_SIZE = 27;
     static constexpr double LOG_3 = 1.58496250072;
     static constexpr double DEPTH = 9;
 
     TranspositionTable* table = new TranspositionTable(1 << BOOK_SIZE);
 
-    std::ifstream in(input_file);
+    std::ifstream in(book_name);
     if (!in) {
-        std::cerr << "Cannot open file: " << input_file << std::endl;
+        std::cerr << "Cannot open file: " << book_name << std::endl;
         return;
     }
 
@@ -156,7 +156,7 @@ void generate_opening_book(const std::string& input_file) {
     OpeningBook book = OpeningBook(table);
 
     std::ostringstream book_file;
-    book_file << "depth_11_scores.book";;
+    book_file << "depth_11_scores.book";
     book.save(book_file.str());
 }
 
@@ -195,8 +195,8 @@ int main(int argc, char **argv)
     {
         if (std::string(argv[1]) == "book") 
         {
-            std::string input_file = argv[2];
-            generate_opening_book(input_file);
+            std::string book_name = argv[2];
+            generateOpeningBook(book_name);
         }
         else  
         {

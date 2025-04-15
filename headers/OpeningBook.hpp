@@ -1,12 +1,12 @@
 #pragma once
 
+#include "Position.hpp"
+#include "TranspositionTable.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <unordered_map>
 #include <cstdint>
-#include "Position.hpp"
-#include "TranspositionTable.hpp"
 
 class OpeningBook
 {
@@ -59,7 +59,7 @@ public:
             return;
         }
 
-        uint8_t buf[8]; // 7 bytes key + 1 byte move
+        uint8_t buf[8]; // 8 bytes key + 1 byte move
         size_t loaded = 0;
         while (ifs.read(reinterpret_cast<char *>(buf), 8))
         {
@@ -75,11 +75,6 @@ public:
 
         ifs.close();
         std::cout << "Loaded " << loaded << " positions from " << filename << "\n";
-    }
-
-    uint8_t getBestScore(uint64_t key) const
-    {
-        uint8_t move = T->Get(key);
-        return (move != 0) ? move : NO_MOVE;
+        std::cout << "Collisions: " << T->collisions << "\n";
     }
 };

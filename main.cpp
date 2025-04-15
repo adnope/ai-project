@@ -7,6 +7,17 @@
 
 using namespace std;
 
+const char *OPENING_BOOK_FILE = "depth_11_7x6.book";
+
+void loadOpeningBook(Solver &solver)
+{
+	auto start = chrono::high_resolution_clock::now();
+	solver.LoadBook(OPENING_BOOK_FILE);
+	auto end = chrono::high_resolution_clock::now();
+	chrono::duration<double, milli> duration = end - start;
+	std::cout << "Loaded opening book in " << duration.count() / 1000 << " seconds.\n";
+}
+
 int runTest()
 {
 	Solver solver;
@@ -18,8 +29,7 @@ int runTest()
 		return 1;
 	}
 
-	solver.LoadBook("depth_11_scores.book");
-
+	loadOpeningBook(solver);
 
 	string line;
 	int correct_score;
@@ -62,8 +72,7 @@ int runTest()
 void findMoveAndCalculateScore()
 {
 	Solver solver;
-	solver.LoadBook("depth_11_scores.book");
-
+	loadOpeningBook(solver);
 
 	string line;
 	while (getline(cin, line))
@@ -76,7 +85,8 @@ void findMoveAndCalculateScore()
 		}
 		else
 		{
-			if (P.nbMoves() == 11) solver.Reset();
+			if (P.nbMoves() == 11)
+				solver.Reset();
 			auto start = chrono::high_resolution_clock::now();
 
 			int score;
@@ -100,7 +110,7 @@ void findMoveAndCalculateScore()
 void continuouslyFindMoveAndCalculateScore()
 {
 	Solver solver;
-	solver.LoadBook("depth_11_scores.book");
+	loadOpeningBook(solver);
 
 	string current_sequence;
 	Position P;
@@ -113,7 +123,8 @@ void continuouslyFindMoveAndCalculateScore()
 		}
 		else
 		{
-			if (P.nbMoves() == 11) solver.Reset();
+			if (P.nbMoves() == 11)
+				solver.Reset();
 			current_sequence += line;
 			auto start = chrono::high_resolution_clock::now();
 
@@ -200,8 +211,7 @@ void printConnectFourBoard(const string &moves)
 void startGame()
 {
 	Solver solver;
-	solver.LoadBook("depth_11_scores.book");
-
+	loadOpeningBook(solver);
 
 	string sequence = "";
 	Position P;
