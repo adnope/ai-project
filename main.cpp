@@ -9,6 +9,7 @@ using namespace std;
 
 void loadOpeningBook(Solver &solver, string book_name)
 {
+	auto start = chrono::high_resolution_clock::now();
 	string line;
 	string move;
 	int score;
@@ -23,7 +24,9 @@ void loadOpeningBook(Solver &solver, string book_name)
 		solver.transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
 		count++;
 	}
-	cout << "Loaded " << count << " positions from " << book_name << "\n";
+	auto end = chrono::high_resolution_clock::now();
+	chrono::duration<double, milli> duration = end - start;
+	cout << "Loaded " << count << " positions from " << book_name << " in " << duration.count() / 1000 << " seconds\n";
 	cout << "Collisions count: " << solver.transTable.collisions << endl;
 }
 
@@ -95,7 +98,8 @@ void findMoveAndCalculateScore()
 		}
 		else
 		{
-			if (P.nbMoves() == 11) solver.Reset();
+			if (P.nbMoves() == 11)
+				solver.Reset();
 			auto start = chrono::high_resolution_clock::now();
 
 			int score;
@@ -132,7 +136,8 @@ void continuouslyFindMoveAndCalculateScore()
 		}
 		else
 		{
-			if (P.nbMoves() == 11) solver.Reset();
+			if (P.nbMoves() == 11)
+				solver.Reset();
 			current_sequence += line;
 			auto start = chrono::high_resolution_clock::now();
 
