@@ -43,3 +43,20 @@ Or if you're on Linux:
 ./solver -t
 ./solver --test
 ```
+
+## Connect instructions:
+
+### Connect to the battling platform:
+
+Step 1: Start the connection script app.py (bound to localhost:8080):
+```
+python app.py
+```
+
+Step 2: Start ngrok to get the forwarding endpoint:
+
+```
+./ngrok http 8080
+```
+
+Step 3: Give your endpoint to the organizer of the game.
