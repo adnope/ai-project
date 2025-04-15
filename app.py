@@ -7,9 +7,10 @@ from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
-from solver_interface import call_solver, init_process
+from solver_interface import SolverInterface
 
-process = init_process()
+
+solver = SolverInterface()
 
 app = FastAPI()
 
@@ -21,7 +22,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Setup logging to both file and console with immediate flush
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(message)s',
@@ -33,7 +33,6 @@ logging.basicConfig(
 
 def force_log(message):
     logging.info(message)
-    # Force flush all handlers
     for handler in logging.getLogger().handlers:
         handler.flush()
 
@@ -61,86 +60,42 @@ class GameState(BaseModel):
 class AIResponse(BaseModel):
     move: int
 
-def is_valid_board(curr_board, target_board):
-    """Check if current board could lead to target board"""
-    for r in range(6):
-        for c in range(7):
-            if curr_board[r][c] != 0 and curr_board[r][c] != target_board[r][c]:
-                return False
-    return True
+def is_board_full(board: List[List[int]]) -> bool:
+    """Check if board has no empty spaces"""
+    return all(cell != 0 for row in board for cell in row)
 
-def is_valid_connect4_board(board):
-    """Check if pieces are properly stacked due to gravity"""
-    for col in range(7):
-        for row in range(4, -1, -1):
-            if board[row][col] != 0 and board[row + 1][col] == 0:
-                return False  # Floating piece found
-    return True
-
-def dfs_find_sequence(target_board, curr_board, move_seq, curr_player, piece_count):
-    """Find sequence of moves using DFS"""
-    # Base case: if we've placed all the pieces in the target board
-    if piece_count == 0:
-        return curr_board == target_board
-
-    # Try each column
-    for col in range(7):
-        # Find lowest empty row in this column
-        row = 5
-        while row >= 0 and curr_board[row][col] != 0:
-            row -= 1
-
-        # If column is not full
-        if row >= 0:
-            # Make the move only if it matches target board
-            if target_board[row][col] == curr_player:
-                curr_board[row][col] = curr_player
-                move_seq.append(col + 1)
-                piece_count -= 1
-
-                # Recursively try next move with other player
-                next_player = 2 if curr_player == 1 else 1
-                if dfs_find_sequence(target_board, curr_board, move_seq, 
-                                   next_player, piece_count):
-                    return True
-
-                # If this path didn't work, undo the move
-                curr_board[row][col] = 0
-                move_seq.pop()
-                piece_count += 1
-
+def is_winning_board(board: List[List[int]]) -> bool:
+    # Horizontal
+    for row in range(6):
+        for col in range(4):
+            window = [board[row][col + i] for i in range(4)]
+            if len(set(window)) == 1 and window[0] != 0:
+                return True
+    
+    # Vertical
+    for row in range(3):
+        for col in range(7):
+            window = [board[row + i][col] for i in range(4)]
+            if len(set(window)) == 1 and window[0] != 0:
+                return True
+                
+    # Diagonal right
+    for row in range(3):
+        for col in range(4):
+            window = [board[row + i][col + i] for i in range(4)]
+            if len(set(window)) == 1 and window[0] != 0:
+                return True
+                
+    # Diagonal left
+    for row in range(3):
+        for col in range(3, 7):
+            window = [board[row + i][col - i] for i in range(4)]
+            if len(set(window)) == 1 and window[0] != 0:
+                return True
+    
     return False
 
-def board_to_move_sequence(board):
-    """Convert a board state to sequence of moves"""
-    # First, verify the board is valid Connect 4 board
-    if not is_valid_connect4_board(board):
-        return ""  # Invalid board configuration
-
-    move_seq = []
-    curr_board = [[0] * 7 for _ in range(6)]
-
-    # Count total pieces
-    piece_count = sum(cell != 0 for row in board for cell in row)
-    
-    # Try starting with player 1
-    remaining = piece_count
-    if dfs_find_sequence(board, curr_board, move_seq, 1, remaining):
-        return "".join(str(move) for move in move_seq)
-    
-    # If player 1 starting didn't work, try player 2
-    move_seq.clear()
-    curr_board = [[0] * 7 for _ in range(6)]
-    remaining = piece_count
-    if dfs_find_sequence(board, curr_board, move_seq, 2, remaining):
-        return "".join(str(move) for move in move_seq)
-
-    return ""  # No valid sequence found
-
-import sys
-
 def print_immediate(*args):
-    """Print immediately to console"""
     print(*args, flush=True)
     sys.stdout.flush()
 
@@ -151,31 +106,45 @@ async def make_move(game_state: GameState) -> AIResponse:
         print_immediate("NEW MOVE REQUEST")
         print_immediate("="*50)
         
-        if not game_state.valid_moves:
-            raise ValueError("Không có nước đi hợp lệ")
+        if is_board_full(game_state.board):
+            print_immediate("Board is full - Starting new game")
+            solver.reset()
+        elif is_winning_board(game_state.board):
+            print_immediate("Game won - Starting new game")
+            solver.reset()
+        elif not game_state.valid_moves:
+            print_immediate("No valid moves - Starting new game")
+            solver.reset()
+            raise ValueError("No valid moves available")
             
         print_immediate("Current board:")
         for row in game_state.board:
             print_immediate(row)
         
-        sequence = board_to_move_sequence(game_state.board)
-        print_immediate(f"\nMove sequence: {sequence}")
-
-        if sequence:
-            solver_move = call_solver(sequence, process)
-            print_immediate(f"\nSolver suggests move: {solver_move}")
-            if solver_move is not None:
-                selected_move = solver_move - 1
-                if selected_move in game_state.valid_moves:
-                    print_immediate(f"Using solver move: {selected_move}")
-                    return AIResponse(move=selected_move)
+        print_immediate(f"Current player: {game_state.current_player}")
+        print_immediate(f"Valid moves: {game_state.valid_moves}")
         
+        solver_move = solver.call_solver(game_state.board, game_state.current_player)
+        if solver_move is not None:
+            selected_move = solver_move - 1  # Convert 1-based to 0-based
+            print_immediate(f"Solver returned move: {solver_move} (0-indexed: {selected_move})")
+            
+            if selected_move in game_state.valid_moves:
+                return AIResponse(move=selected_move)
+            else:
+                print_immediate(f"WARNING: Solver move {selected_move} not in valid moves {game_state.valid_moves}")
+        else:
+            print_immediate("Solver returned None")
+        
+
         selected_move = random.choice(game_state.valid_moves)
         print_immediate(f"Using random move: {selected_move}")
         return AIResponse(move=selected_move)
         
     except Exception as e:
+        print_immediate(f"ERROR in make_move: {str(e)}")
         if game_state.valid_moves:
+            # Fallback to first valid move on error
             return AIResponse(move=game_state.valid_moves[0])
         raise HTTPException(status_code=400, detail=str(e))
 
