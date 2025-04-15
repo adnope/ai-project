@@ -235,7 +235,9 @@ void startGame()
 		}
 		else if (choice == 2)
 		{
-			P.playCol(solver.FindBestMove(P));
+			int best_move = solver.FindBestMove(P);
+			P.playCol(best_move);
+			sequence += to_string(best_move + 1);
 			break;
 		}
 		else
@@ -285,28 +287,6 @@ void startGame()
 		cout << "Bot has played: column " << ai_move + 1 << endl;
 	}
 }
-
-// void botVersusBot()
-// {
-// 	Position P;
-// 	string current_sequence = "";
-
-// 	Solver solver;
-// 	bool turn = 0;
-// 	while (1)
-// 	{
-// 		int move = solver.FindBestMove(P);
-// 		if (P.IsWinningMove(move))
-// 		{
-// 			cout << ""
-// 			break;
-// 		}
-// 		if (P.CanPlay(move))
-// 		{
-
-// 		}
-// 	}
-// }
 
 int main(int argc, char **argv)
 {

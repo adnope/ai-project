@@ -7,6 +7,7 @@
 #include <fstream>
 #include <chrono>
 #include <sstream>
+
 /**
  * How to use the generator to generate an opening book:
  *
@@ -26,7 +27,6 @@
  * The repo already has a sample opening book, which is named "depth_11_scores.book", it is the results
  * file after running explore and calculateScore with depth 11.
  */
-
 void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &visited,
              int &number_of_explored_moves, const int depth, std::ofstream &explored_moves_stream)
 {
