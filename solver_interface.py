@@ -55,6 +55,9 @@ class SolverInterface:
             
             # Add our move to sequence immediately if valid
             if move is not None:
+                if (move == 9):
+                    print("[Solver] Timed out.")
+                    return None
                 self.board_tracker.add_our_move(move - 1, player)  # Convert 1-based to 0-based
             else:
                 print("[Solver] WARNING: Solver returned None for move")

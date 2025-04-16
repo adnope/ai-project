@@ -87,22 +87,21 @@ void findMoveAndCalculateScore()
 		{
 			// if (P.nbMoves() == 11)
 			// 	solver.Reset();
-			auto start = chrono::high_resolution_clock::now();
-
 			int score;
 			unsigned int best_move;
-
+			auto start = chrono::high_resolution_clock::now();
 			score = solver.Solve(P);
 			best_move = solver.FindBestMove(P);
-
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
+			string best_move_str = to_string(best_move + 1);
+			if (duration.count() >= 5000) best_move_str = "9";
 			cout << line
 				 << ": " << P.nbMoves() << " moves, "
 				 << "Score: " << score
 				 << ", Nodes: " << solver.GetNodeCount()
 				 << ", Time: " << duration.count() << " ms"
-				 << ", Best move: column " << best_move + 1 << "\n";
+				 << ", Best move: column " << best_move_str << "\n";
 		}
 	}
 }
