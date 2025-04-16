@@ -48,7 +48,7 @@ class SolverInterface:
             
             # Print the sequence we're sending to solver
             sequence = self.board_tracker.get_sequence()
-            print(f"[Solver] Calling solver with sequence: '{sequence}'")
+            # print(f"[Solver] Calling solver with sequence: '{sequence}'")
             
             # Get solver move
             move = self._call_solver_with_sequence(sequence)
@@ -68,7 +68,7 @@ class SolverInterface:
 
     def _call_solver_with_sequence(self, sequence: str) -> Optional[int]:
         try:
-            print(f"[Solver] Writing to solver stdin: {sequence}")
+            # print(f"[Solver] Writing to solver stdin: {sequence}")
             self.process.stdin.write(f"{sequence}\n")
             self.process.stdin.flush()
 

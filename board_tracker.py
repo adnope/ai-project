@@ -14,7 +14,7 @@ class BoardTracker:
                     new_board[row][col] != self.last_board[row][col]):
                     changes_found += 1
                     opponent_col = col
-                    print(f"[Tracker] Detected change at row {row}, col {col}: {self.last_board[row][col]} -> {new_board[row][col]}")
+                    # print(f"[Tracker] Detected change at row {row}, col {col}: {self.last_board[row][col]} -> {new_board[row][col]}")
         
         # exactly one change for an opponent move
         if changes_found == 0:
@@ -56,7 +56,7 @@ class BoardTracker:
         # Normal move detection for ongoing game
         opp_col = self.detect_opponent_move(board)
         if opp_col != -1:
-            print(f"[Tracker] Detected opponent move in column {opp_col + 1}")
+            print(f"[Tracker] Opponent move: {opp_col + 1}")
             self.sequence += str(opp_col + 1)
         
         # Update board state
@@ -70,7 +70,7 @@ class BoardTracker:
         for row in range(5, -1, -1):
             if self.last_board[row][col] == 0:
                 self.last_board[row][col] = player
-                print(f"[Tracker] Added our move in column {col + 1} at row {row}")
+                # print(f"[Tracker] Added our move in column {col + 1} at row {row}")
                 move_placed = True
                 break
         

@@ -85,10 +85,8 @@ void findMoveAndCalculateScore()
 		}
 		else
 		{
-			if (P.nbMoves() == 11)
-				solver.Reset();
-			if (P.nbMoves() == 11)
-				solver.Reset();
+			// if (P.nbMoves() == 11)
+			// 	solver.Reset();
 			auto start = chrono::high_resolution_clock::now();
 
 			int score;
@@ -125,8 +123,6 @@ void continuouslyFindMoveAndCalculateScore()
 		}
 		else
 		{
-			if (P.nbMoves() == 11)
-				solver.Reset();
 			if (P.nbMoves() == 11)
 				solver.Reset();
 			current_sequence += line;
