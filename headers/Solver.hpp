@@ -152,7 +152,7 @@ public:
 		transTable.Reset();
 	}
 
-	Solver() : nodeCount{0}, transTable(16777259) // 2^24 entries, ~144MB RAM for table
+	Solver() : nodeCount{0}, transTable(67108879) // 2^26 entries
 	{
 		Reset();
 		for (int i = 0; i < Position::WIDTH; i++)

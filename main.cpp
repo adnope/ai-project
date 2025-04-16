@@ -7,7 +7,7 @@
 
 using namespace std;
 
-const char *OPENING_BOOK_FILE = "depth_11_7x6.book";
+const char *OPENING_BOOK_FILE = "depth_12_scores_7x6.book";
 
 void loadOpeningBook(Solver &solver)
 {
@@ -16,6 +16,22 @@ void loadOpeningBook(Solver &solver)
 	auto end = chrono::high_resolution_clock::now();
 	chrono::duration<double, milli> duration = end - start;
 	std::cout << "Loaded opening book in " << duration.count() / 1000 << " seconds.\n";
+}
+
+void warmup(Solver &solver)
+{
+	ifstream ifs("warmup_moves.txt");
+	string line;
+	auto start = chrono::high_resolution_clock::now();
+	while(getline(ifs, line))
+	{
+		Position P;
+		P.Play(line);
+		solver.FindBestMove(P);
+	}
+	auto end = chrono::high_resolution_clock::now();
+	chrono::duration<double, milli> duration = end - start;
+	std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
 }
 
 int runTest()
@@ -73,6 +89,7 @@ void findMoveAndCalculateScore()
 {
 	Solver solver;
 	loadOpeningBook(solver);
+	warmup(solver);
 
 	string line;
 	while (getline(cin, line))
@@ -85,8 +102,6 @@ void findMoveAndCalculateScore()
 		}
 		else
 		{
-			// if (P.nbMoves() == 11)
-			// 	solver.Reset();
 			int score;
 			unsigned int best_move;
 			auto start = chrono::high_resolution_clock::now();
@@ -94,14 +109,13 @@ void findMoveAndCalculateScore()
 			best_move = solver.FindBestMove(P);
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
-			string best_move_str = to_string(best_move + 1);
-			if (duration.count() >= 5000) best_move_str = "9";
+
 			cout << line
 				 << ": " << P.nbMoves() << " moves, "
 				 << "Score: " << score
 				 << ", Nodes: " << solver.GetNodeCount()
 				 << ", Time: " << duration.count() << " ms"
-				 << ", Best move: column " << best_move_str << "\n";
+				 << ", Best move: column " << best_move + 1 << "\n";
 		}
 	}
 }
@@ -122,8 +136,6 @@ void continuouslyFindMoveAndCalculateScore()
 		}
 		else
 		{
-			if (P.nbMoves() == 11)
-				solver.Reset();
 			current_sequence += line;
 			auto start = chrono::high_resolution_clock::now();
 
