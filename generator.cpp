@@ -116,7 +116,7 @@ void calculateScore(char *input_file, char *result_file)
 }
 
 void generateOpeningBook(const std::string& book_name) {
-    TranspositionTable* table = new TranspositionTable(67108879);
+    TranspositionTable* table = new TranspositionTable(268435459);
 
     std::ifstream in(book_name);
     if (!in) {

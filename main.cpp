@@ -7,12 +7,10 @@
 
 using namespace std;
 
-const char *OPENING_BOOK_FILE = "depth_12_scores_7x6.book";
-
-void loadOpeningBook(Solver &solver)
+void loadOpeningBook(Solver &solver, string book_name)
 {
 	auto start = chrono::high_resolution_clock::now();
-	solver.LoadBook(OPENING_BOOK_FILE);
+	solver.LoadBook(book_name);
 	auto end = chrono::high_resolution_clock::now();
 	chrono::duration<double, milli> duration = end - start;
 	std::cout << "Loaded opening book in " << duration.count() / 1000 << " seconds.\n";
@@ -40,6 +38,26 @@ void warmup(Solver &solver)
 	std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
 }
 
+void loadBookLineByLine(Solver &solver, string book_name)
+{
+	string line;
+	string move;
+	int score;
+	int count = 0;
+	ifstream ifs(book_name);
+	while (getline(ifs, line))
+	{
+		istringstream iss(line);
+		iss >> move >> score;
+		Position P;
+		P.Play(move);
+		solver.transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
+		count++;
+	}
+	cout << "Loaded " << count << " positions from " << book_name << "\n";
+	cout << "Collisions count: " << solver.transTable.collisions << endl;
+}
+
 int runTest()
 {
 	Solver solver;
@@ -51,7 +69,7 @@ int runTest()
 		return 1;
 	}
 
-	loadOpeningBook(solver);
+	loadOpeningBook(solver, "depth_12_scores_7x6.book");
 
 	string line;
 	int correct_score;
@@ -94,8 +112,9 @@ int runTest()
 void findMoveAndCalculateScore()
 {
 	Solver solver;
-	loadOpeningBook(solver);
+	loadOpeningBook(solver, "depth_12_scores_7x6.book");
 	warmup(solver);
+	// loadBookLineByLine(solver, "depth_to_12_scores.txt");
 
 	string line;
 	while (getline(cin, line))
@@ -129,7 +148,7 @@ void findMoveAndCalculateScore()
 void continuouslyFindMoveAndCalculateScore()
 {
 	Solver solver;
-	loadOpeningBook(solver);
+	loadOpeningBook(solver, "depth_12_scores_7x6.book");
 
 	string current_sequence;
 	Position P;
@@ -228,7 +247,7 @@ void printConnectFourBoard(const string &moves)
 void startGame()
 {
 	Solver solver;
-	loadOpeningBook(solver);
+	loadOpeningBook(solver, "depth_12_scores_7x6.book");
 
 	string sequence = "";
 	Position P;
