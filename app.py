@@ -12,6 +12,8 @@ from solver_interface import SolverInterface
 
 solver = SolverInterface()
 
+solver.call_solver([[0]], 1)
+
 app = FastAPI()
 
 app.add_middleware(

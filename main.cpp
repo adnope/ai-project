@@ -20,16 +20,22 @@ void loadOpeningBook(Solver &solver)
 
 void warmup(Solver &solver)
 {
-	ifstream ifs("warmup_moves.txt");
 	string line;
+	string move;
+	int score;
+	int count = 0;
+	ifstream ifs("2_scores.txt");
 	auto start = chrono::high_resolution_clock::now();
-	while(getline(ifs, line))
+	while (getline(ifs, line))
 	{
+		istringstream iss(line);
+		iss >> move >> score;
 		Position P;
-		P.Play(line);
-		solver.FindBestMove(P);
+		P.Play(move);
+		solver.transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
+		count++;
 	}
-	auto end = chrono::high_resolution_clock::now();
+		auto end = chrono::high_resolution_clock::now();
 	chrono::duration<double, milli> duration = end - start;
 	std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
 }
