@@ -81,7 +81,6 @@ class SolverInterface:
                 line = self.process.stdout.readline()
                 line_count += 1
                 
-
                 print(f"[Solver] Output {line_count}: {line.strip()}")
 
                 if "Best move: column" in line:

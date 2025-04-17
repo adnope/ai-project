@@ -38,26 +38,6 @@ void warmup(Solver &solver)
 	std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
 }
 
-void loadBookLineByLine(Solver &solver, string book_name)
-{
-	string line;
-	string move;
-	int score;
-	int count = 0;
-	ifstream ifs(book_name);
-	while (getline(ifs, line))
-	{
-		istringstream iss(line);
-		iss >> move >> score;
-		Position P;
-		P.Play(move);
-		solver.transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
-		count++;
-	}
-	cout << "Loaded " << count << " positions from " << book_name << "\n";
-	cout << "Collisions count: " << solver.transTable.collisions << endl;
-}
-
 int runTest()
 {
 	Solver solver;
@@ -70,6 +50,7 @@ int runTest()
 	}
 
 	loadOpeningBook(solver, "depth_12_scores_7x6.book");
+	warmup(solver);
 
 	string line;
 	int correct_score;
@@ -114,7 +95,6 @@ void findMoveAndCalculateScore()
 	Solver solver;
 	loadOpeningBook(solver, "depth_12_scores_7x6.book");
 	warmup(solver);
-	// loadBookLineByLine(solver, "depth_to_12_scores.txt");
 
 	string line;
 	while (getline(cin, line))
@@ -149,6 +129,7 @@ void continuouslyFindMoveAndCalculateScore()
 {
 	Solver solver;
 	loadOpeningBook(solver, "depth_12_scores_7x6.book");
+	warmup(solver);
 
 	string current_sequence;
 	Position P;
@@ -248,6 +229,7 @@ void startGame()
 {
 	Solver solver;
 	loadOpeningBook(solver, "depth_12_scores_7x6.book");
+	warmup(solver);
 
 	string sequence = "";
 	Position P;
