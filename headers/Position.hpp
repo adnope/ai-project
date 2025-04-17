@@ -38,7 +38,7 @@ public:
 		moves++;
 	}
 
-	void playCol(int col)
+	void PlayCol(int col)
 	{
 		Play((mask + BottomMaskCol(col)) & ColumnMask(col));
 	}
@@ -50,7 +50,7 @@ public:
 			int col = seq[i] - '1';
 			if (col < 0 || col >= Position::WIDTH || !CanPlay(col) || IsWinningMove(col))
 				return i; // invalid move
-			playCol(col);
+			PlayCol(col);
 		}
 		return seq.size();
 	}

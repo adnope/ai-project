@@ -4,6 +4,7 @@
 #include "Position.hpp"
 #include "MoveSorter.hpp"
 #include "OpeningBook.hpp"
+#include <random>
 
 class Solver
 {
@@ -85,7 +86,8 @@ public:
 
 	int Solve(const Position &P)
 	{
-		if (transTable.Get(P.Key3()) != 0) {
+		if (transTable.Get(P.Key3()) != 0)
+		{
 			return int(transTable.Get(P.Key3())) + Position::MIN_SCORE - 1;
 		}
 		if (P.CanWinNext()) // check if win in one move as the Negamax function does not support this case.
@@ -112,8 +114,9 @@ public:
 
 	int FindBestMove(const Position &P)
 	{
-		if (P.isEmpty()) return (Position::WIDTH + 1) / 2 - 1;
-		int best_col;
+		if (P.isEmpty())
+			return (Position::WIDTH + 1) / 2 - 1;
+		std::vector<int> best_cols;
 		int best_score = -100;
 		for (int col = 0; col < Position::WIDTH; ++col)
 		{
@@ -124,17 +127,26 @@ public:
 					return col;
 				}
 				Position P2(P);
-				P2.playCol(col);
-				int score;
-				score = -Solve(P2);
+				P2.PlayCol(col);
+				int score = -Solve(P2);
+
 				if (score > best_score)
 				{
 					best_score = score;
-					best_col = col;
+					best_cols.clear();
+					best_cols.push_back(col);
+				}
+				else if (score == best_score)
+				{
+					best_cols.push_back(col);
 				}
 			}
 		}
-		return best_col;
+
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dist(0, best_cols.size() - 1);
+		return best_cols[dist(gen)];
 	}
 
 	unsigned long long GetNodeCount()
@@ -142,7 +154,8 @@ public:
 		return nodeCount;
 	}
 
-	void LoadBook(std::string filename) {
+	void LoadBook(std::string filename)
+	{
 		book.load(filename);
 	}
 

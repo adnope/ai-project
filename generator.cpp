@@ -48,7 +48,7 @@ void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &vis
         if (P.CanPlay(i) && !P.IsWinningMove(i))
         {
             Position P2(P);
-            P2.playCol(i);
+            P2.PlayCol(i);
             pos_str[nb_moves] = '1' + i;
             explore(P2, pos_str, visited, number_of_explored_moves, depth, explored_moves_stream);
             pos_str[nb_moves] = 0;
