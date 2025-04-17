@@ -32,6 +32,8 @@ The solver currently has 4 modes:
 
 - (Continuous find) -c, --continuous_find: Only 1 position exists, the user inputs moves continuously and the solver will find the best move for the current position.
 
+- (Bot versus bot) -b, --bot_game: Create 2 bots and make them play against each other. Currently this function is used for generating the hard moves (moves that take more than 2 seconds) to add to the warmup moves book. Feel free to modify the code to get the playing mode.
+
 Alternatively, you can compile the solver first using ```make```, and run the executable with the corresponding argument. For example:
 ```
 If you're on Windows:
