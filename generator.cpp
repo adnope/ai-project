@@ -116,11 +116,7 @@ void calculateScore(char *input_file, char *result_file)
 }
 
 void generateOpeningBook(const std::string& book_name) {
-    static constexpr int BOOK_SIZE = 27;
-    static constexpr double LOG_3 = 1.58496250072;
-    static constexpr double DEPTH = 9;
-
-    TranspositionTable* table = new TranspositionTable(1 << BOOK_SIZE);
+    TranspositionTable* table = new TranspositionTable(67108879);
 
     std::ifstream in(book_name);
     if (!in) {
