@@ -33,7 +33,7 @@ void warmup(Solver &solver)
 		solver.transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
 		count++;
 	}
-		auto end = chrono::high_resolution_clock::now();
+	auto end = chrono::high_resolution_clock::now();
 	chrono::duration<double, milli> duration = end - start;
 	std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
 }
@@ -250,7 +250,7 @@ void startGame()
 		else if (choice == 2)
 		{
 			int best_move = solver.FindBestMove(P);
-			P.playCol(best_move);
+			P.PlayCol(best_move);
 			sequence += to_string(best_move + 1);
 			break;
 		}
@@ -285,7 +285,7 @@ void startGame()
 		}
 
 		sequence += to_string(player_move);
-		P.playCol(player_move - 1);
+		P.PlayCol(player_move - 1);
 
 		int ai_move = solver.FindBestMove(P);
 		if (P.IsWinningMove(ai_move))
@@ -296,9 +296,75 @@ void startGame()
 			cout << "You lose!\n";
 			break;
 		}
-		P.playCol(ai_move);
+		P.PlayCol(ai_move);
 		sequence += to_string(ai_move + 1);
 		cout << "Bot has played: column " << ai_move + 1 << endl;
+	}
+}
+
+void startBotGame()
+{
+	ofstream hard_moves_stream("hard_moves.txt");
+
+	Solver solver;
+	loadOpeningBook(solver, "depth_12_scores_7x6.book");
+	warmup(solver);
+
+	cout << "\n<------------------>\n"
+		 << "THE GAME HAS STARTED\n"
+		 << "<------------------>\n\n";
+
+	string initial_sequence = "44444";
+	string sequence = initial_sequence;
+	Position P;
+	P.Play(sequence);
+
+	int move;
+	string player_name;
+	bool is_red_turn;
+	while (1)
+	{
+		if (P.nbMoves() == 14)
+		{
+			sequence = initial_sequence;
+			P = Position();
+			P.Play(sequence);
+		}
+
+		is_red_turn = (sequence.size() + 1) % 2;
+		cout << "Moves: " << sequence.size() << "\n";
+		printConnectFourBoard(sequence);
+
+		if (is_red_turn)
+			player_name = "Red";
+		else
+			player_name = "Yellow";
+
+		cout << player_name << " is thinking...\n";
+
+		auto start = chrono::high_resolution_clock::now();
+		move = solver.FindBestMove(P);
+		auto end = chrono::high_resolution_clock::now();
+
+		chrono::duration<double, milli> duration = end - start;
+		if (duration.count() >= 2000)
+		{
+			hard_moves_stream << sequence << "\n";
+			hard_moves_stream.flush();
+		}
+
+		cout << player_name << " has played: column " << move + 1 << ", " << duration.count() << " ms.\n";
+
+		if (P.IsWinningMove(move))
+		{
+			sequence += to_string(move + 1);
+			printConnectFourBoard(sequence);
+			cout << player_name << " won!\n";
+			return;
+		}
+
+		P.PlayCol(move);
+		sequence += to_string(move + 1);
 	}
 }
 
@@ -322,6 +388,10 @@ int main(int argc, char **argv)
 		else if (strcmp(argv[1], "-p") == 0 || strcmp(argv[1], "--play") == 0)
 		{
 			startGame();
+		}
+		else if (strcmp(argv[1], "-b") == 0 || strcmp(argv[1], "--bot_game") == 0)
+		{
+			startBotGame();
 		}
 		else
 		{

@@ -18,3 +18,7 @@ run: all
 generate:
 	$(CXX) $(CXXFLAGS) -o generator generator.cpp
 	./generator $(ARGS)
+
+warmup:
+	$(CXX) warmup_generator.cpp -o warmup_generator
+	./warmup_generator
