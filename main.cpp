@@ -24,7 +24,7 @@ void warmup(Solver &solver)
 	string move;
 	int score;
 	int count = 0;
-	ifstream ifs("2_scores.txt");
+	ifstream ifs("warmup.book");
 	auto start = chrono::high_resolution_clock::now();
 	while (getline(ifs, line))
 	{
