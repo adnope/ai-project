@@ -4,8 +4,31 @@
 #include <unordered_set>
 #include <iostream>
 #include <chrono>
+#include <sstream>
 
 using namespace std;
+
+void warmup(Solver &solver)
+{
+	string line;
+	string move;
+	int score;
+	int count = 0;
+	ifstream ifs("warmup.book");
+	auto start = chrono::high_resolution_clock::now();
+	while (getline(ifs, line))
+	{
+		istringstream iss(line);
+		iss >> move >> score;
+		Position P;
+		P.Play(move);
+		solver.transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
+		count++;
+	}
+	auto end = chrono::high_resolution_clock::now();
+	chrono::duration<double, milli> duration = end - start;
+	std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
+}
 
 void removeDuplicateLines(const string &file_name)
 {
@@ -50,12 +73,15 @@ void genMoves(string input_file)
 {
     Solver solver;
     loadOpeningBook(solver, "depth_12_scores_7x6.book");
+    warmup(solver);
     string line;
     ofstream ofs("warmup.book", ios::app);
 
     ifstream ifs(input_file);
+    int count = 0;
     while (getline(ifs, line))
     {
+        count++;
         Position P;
         P.Play(line);
         for (int i = 0; i <= 6; ++i)
@@ -71,6 +97,7 @@ void genMoves(string input_file)
             }
         }
         ofs.flush();
+        cout << "Line " << count << " processed.\n";
     }
 }
 

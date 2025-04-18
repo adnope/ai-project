@@ -41,7 +41,7 @@ void warmup(Solver &solver)
 int runTest()
 {
 	Solver solver;
-	ifstream testStream("tests/10_moves.test");
+	ifstream testStream("tests/begin_hard.test");
 
 	if (!testStream)
 	{
@@ -314,7 +314,7 @@ void startBotGame()
 		 << "THE GAME HAS STARTED\n"
 		 << "<------------------>\n\n";
 
-	string initial_sequence = "44444";
+	string initial_sequence = "444444";
 	string sequence = initial_sequence;
 	Position P;
 	P.Play(sequence);
