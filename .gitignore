@@ -1,5 +1,4 @@
 *.exe
-*.txt
 *.log
 
 .venv/
@@ -8,3 +7,4 @@ main
 draft/
 __pycache__/
 setup.sh
+hard_moves.txt
