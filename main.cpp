@@ -304,8 +304,13 @@ void startGame()
 
 void startBotGame()
 {
-	ofstream hard_moves_stream("hard_moves.txt");
-
+	// Change this bool value to enable training mode (training warmup book)
+	bool isTrainingMode = true;
+	ofstream hard_moves_stream;
+	if (isTrainingMode) {
+		hard_moves_stream = ofstream("hard_moves.txt");
+	}
+	
 	Solver solver;
 	loadOpeningBook(solver, "depth_12_scores_7x6.book");
 	warmup(solver);
@@ -314,7 +319,8 @@ void startBotGame()
 		 << "THE GAME HAS STARTED\n"
 		 << "<------------------>\n\n";
 
-	string initial_sequence = "444444";
+	string initial_sequence = "";
+	if (isTrainingMode) initial_sequence = "44444";
 	string sequence = initial_sequence;
 	Position P;
 	P.Play(sequence);
@@ -324,7 +330,7 @@ void startBotGame()
 	bool is_red_turn;
 	while (1)
 	{
-		if (P.nbMoves() == 14)
+		if (P.nbMoves() == 14 && isTrainingMode)
 		{
 			sequence = initial_sequence;
 			P = Position();
@@ -345,9 +351,9 @@ void startBotGame()
 		auto start = chrono::high_resolution_clock::now();
 		move = solver.FindBestMove(P);
 		auto end = chrono::high_resolution_clock::now();
-
 		chrono::duration<double, milli> duration = end - start;
-		if (duration.count() >= 2000)
+		
+		if (duration.count() >= 2000 && isTrainingMode)
 		{
 			hard_moves_stream << sequence << "\n";
 			hard_moves_stream.flush();
