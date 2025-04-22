@@ -25,6 +25,10 @@ def print_immediate(*args):
     print(*args, flush=True)
     sys.stdout.flush()
 
+@app.get("/api/test")
+async def health_check():
+    return {"status": "ok", "message": "Server is running"}
+
 @app.middleware("http")
 async def log_request_response(request: Request, call_next):
     # Log the request
