@@ -122,6 +122,7 @@ void findMoveAndCalculateScore()
 				 << ", Nodes: " << solver.GetNodeCount()
 				 << ", Time: " << duration.count() << " ms"
 				 << ", Best move: column " << best_move + 1 << "\n";
+			fflush(stdout);
 		}
 	}
 }
