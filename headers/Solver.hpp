@@ -149,6 +149,14 @@ public:
 		return best_cols[dist(gen)];
 	}
 
+	int RandomMove()
+	{
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dist(0, Position::WIDTH - 1);
+		return dist(gen);
+	}
+
 	unsigned long long GetNodeCount()
 	{
 		return nodeCount;

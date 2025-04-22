@@ -4,6 +4,7 @@
 #include <chrono>
 #include <fstream>
 #include <sstream>
+#include <unordered_set>
 
 using namespace std;
 
@@ -305,12 +306,14 @@ void startGame()
 void startBotGame()
 {
 	// Change this bool value to enable training mode (training warmup book)
-	bool isTrainingMode = true;
+	bool is_training_mode = true;
 	ofstream hard_moves_stream;
-	if (isTrainingMode) {
+	unordered_set<string> seen_lines;
+	if (is_training_mode)
+	{
 		hard_moves_stream = ofstream("hard_moves.txt");
 	}
-	
+
 	Solver solver;
 	loadOpeningBook(solver, "depth_12_scores_7x6.book");
 	warmup(solver);
@@ -320,7 +323,8 @@ void startBotGame()
 		 << "<------------------>\n\n";
 
 	string initial_sequence = "";
-	if (isTrainingMode) initial_sequence = "44444";
+	if (is_training_mode)
+		initial_sequence = "44444";
 	string sequence = initial_sequence;
 	Position P;
 	P.Play(sequence);
@@ -330,7 +334,7 @@ void startBotGame()
 	bool is_red_turn;
 	while (1)
 	{
-		if (P.nbMoves() == 14 && isTrainingMode)
+		if (P.nbMoves() == 14 && is_training_mode)
 		{
 			sequence = initial_sequence;
 			P = Position();
@@ -349,12 +353,16 @@ void startBotGame()
 		cout << player_name << " is thinking...\n";
 
 		auto start = chrono::high_resolution_clock::now();
-		move = solver.FindBestMove(P);
+		// if (P.nbMoves() == 7 && is_training_mode)
+		// 	move = solver.RandomMove();
+		// else
+			move = solver.FindBestMove(P);
 		auto end = chrono::high_resolution_clock::now();
 		chrono::duration<double, milli> duration = end - start;
-		
-		if (duration.count() >= 2000 && isTrainingMode)
+
+		if (duration.count() >= 2000 && is_training_mode && seen_lines.find(sequence) == seen_lines.end())
 		{
+			seen_lines.insert(sequence);
 			hard_moves_stream << sequence << "\n";
 			hard_moves_stream.flush();
 		}

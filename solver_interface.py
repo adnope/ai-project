@@ -59,9 +59,6 @@ class SolverInterface:
 
             # Add our move to sequence immediately if valid
             if move is not None:
-                if (move == 9):
-                    print("[Solver] Timed out.")
-                    return None
                 self.board_tracker.add_our_move(move - 1, player)  # Convert 1-based to 0-based
             else:
                 print("[Solver] WARNING: Solver returned None for move")
@@ -83,7 +80,8 @@ class SolverInterface:
                 if "moves" in line:
                     index = line.find("moves")
                     if index != -1:
-                        self.solved_sequence = line[:index + len("moves")] # Get the moves part: 4444: 4 moves
+                        part = line[:index + len("moves")]
+                        self.solved_sequence = part.replace(":", ",", 1)
 
                 if "Time:" in line:
                     try:
