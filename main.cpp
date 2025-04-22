@@ -307,7 +307,7 @@ void startGame()
 void startBotGame()
 {
 	// Change this bool value to enable training mode (training warmup book)
-	bool is_training_mode = true;
+	bool is_training_mode = false;
 	ofstream hard_moves_stream;
 	unordered_set<string> seen_lines;
 	if (is_training_mode)
