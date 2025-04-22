@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 
@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONUNBUFFERED=1
-ENV PORT=8080
 
 COPY requirements.txt .
 RUN pip install --upgrade pip
@@ -22,8 +21,8 @@ RUN chmod +x main
 
 EXPOSE $PORT
 
-# CMD uvicorn app:app --host 0.0.0.0 --port $PORT
+CMD ["uvicorn app:app --host 0.0.0.0 --port $PORT"]
 
 # CMD ["python", "app.py"]
 
-CMD ["./main -b"]
+# CMD ["./main -b"]
