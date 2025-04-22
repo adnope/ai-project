@@ -10,6 +10,7 @@ class SolverInterface:
         self.process = None
         self.board_tracker = BoardTracker()
         self.last_solve_time = None
+        self.solved_sequence = None
 
     def init_process(self):
         try:
@@ -79,6 +80,11 @@ class SolverInterface:
             while True:
                 line = self.process.stdout.readline().strip()
                 
+                if "moves" in line:
+                    index = line.find("moves")
+                    if index != -1:
+                        self.solved_sequence = line[:index + len("moves")] # Get the moves part: 4444: 4 moves
+
                 if "Time:" in line:
                     try:
                         self.last_solve_time = float(line.split("Time:")[1].split("ms")[0].strip())

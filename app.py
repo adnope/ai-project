@@ -119,9 +119,9 @@ async def make_move(game_state: GameState) -> AIResponse:
 
             # Only print the best move and time
             if solver.last_solve_time is not None:
-                print_immediate(f"Best move: {solver_move}, Time: {solver.last_solve_time} ms")
+                print_immediate(f"Solved sequence: {solver.solved_sequence}, Best move: {solver_move}, Time: {solver.last_solve_time} ms")
             else:
-                print_immediate(f"Best move: {solver_move}")
+                print_immediate(f"Solved sequence: {solver.solved_sequence}, Best move: {solver_move}")
 
             if selected_move in game_state.valid_moves:
                 return AIResponse(move=selected_move)
