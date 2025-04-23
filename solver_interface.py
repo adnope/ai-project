@@ -14,11 +14,6 @@ class SolverInterface:
 
     def init_process(self):
         try:
-            if self.process:
-                print("[Solver] Closing existing solver process")
-                self.process.terminate()
-                self.process = None
-
             solver_path = os.path.join(os.path.dirname(__file__), "main")
             print(f"[Solver] Starting new solver process: {solver_path}")
 
@@ -41,9 +36,10 @@ class SolverInterface:
             # Check for new game and reinit process
             piece_count = sum(cell != 0 for row in board for cell in row)
             if piece_count <= 1:
-                print("[Solver] New game detected - resetting state and creating new solver process")
+                print("[Solver] New game detected - resetting board state and sequence")
                 self.board_tracker.reset()
-                self.init_process()
+                self.last_solve_time = None
+                self.solved_sequence = None
 
             # First check for opponent move
             self.board_tracker.handle_new_request(board)
@@ -61,7 +57,7 @@ class SolverInterface:
             if move is not None:
                 self.board_tracker.add_our_move(move - 1, player)  # Convert 1-based to 0-based
             else:
-                print("[Solver] WARNING: Solver returned None for move")
+                print("[Solver] WARNING: No move returned from solver")
 
             return move
 
@@ -93,7 +89,7 @@ class SolverInterface:
                     return int(line.split("Best move: column ")[-1].strip())
 
                 if not line:
-                    print("[Solver] No more output")
+                    print("[Solver] No output detected from main")
                     break
 
             return None
@@ -104,8 +100,7 @@ class SolverInterface:
 
     def reset(self):
         """Reset everything - close solver and clear board"""
-        print("[Solver] Full reset - closing solver and clearing board")
-        if self.process:
-            self.process.terminate()
-            self.process = None
+        print("[Solver] Full reset - clearing board")
+        self.last_solve_time = None
+        self.solved_sequence = None
         self.board_tracker.reset()

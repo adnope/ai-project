@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException, Request, Response
 import random
 import uvicorn
 import sys
+import time
+from fastapi import FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,7 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from solver_interface import SolverInterface
 
 solver = SolverInterface()
-solver.call_solver([[0]], 1)  
+solver.process = solver.init_process()
+solver.call_solver([[0]], 1)
 
 app = FastAPI()
 
@@ -90,6 +92,7 @@ def is_winning_board(board: List[List[int]]) -> bool:
 
 @app.post("/api/connect4-move")
 async def make_move(game_state: GameState) -> AIResponse:
+    api_time = time.perf_counter()
     try:
         print_immediate("\n" + "="*50)
         print_immediate("NEW MOVE REQUEST")
@@ -120,6 +123,7 @@ async def make_move(game_state: GameState) -> AIResponse:
             # Only print the best move and time
             if solver.last_solve_time is not None:
                 print_immediate(f"Solved sequence: {solver.solved_sequence}, Best move: {solver_move}, Time: {solver.last_solve_time} ms")
+                print_immediate(f"API time: {(time.perf_counter() - api_time) * 1000} ms")
             else:
                 print_immediate(f"Solved sequence: {solver.solved_sequence}, Best move: {solver_move}")
 
