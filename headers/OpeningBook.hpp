@@ -11,8 +11,6 @@
 class OpeningBook
 {
 public:
-    static constexpr uint8_t NO_MOVE = 255;
-
     TranspositionTable *T;
 
     OpeningBook(TranspositionTable *table) :T(table) {}
