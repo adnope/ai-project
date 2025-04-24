@@ -63,9 +63,6 @@ public:
 		return T.size();
 	}
 
-	using partial_key_t = uint64_t;
-	using value_t = uint8_t;
-
 	const uint64_t *GetKeys() const
 	{
 		return reinterpret_cast<const uint64_t *>(&T[0]);
@@ -74,16 +71,6 @@ public:
 	const uint8_t *GetValues() const
 	{
 		return reinterpret_cast<const uint8_t *>(&T[0].val);
-	}
-
-	int GetKeySize() const
-	{
-		return sizeof(partial_key_t);
-	}
-
-	int GetValueSize() const
-	{
-		return sizeof(value_t);
 	}
 
 };
