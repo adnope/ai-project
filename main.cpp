@@ -227,7 +227,7 @@ void printConnectFourBoard(const string &moves)
 	cout << endl;
 }
 
-void startGame()
+void startPlayerVsBotGame()
 {
 	Solver solver;
 	loadOpeningBook(solver, "depth_12_scores_7x6.book");
@@ -306,15 +306,6 @@ void startGame()
 
 void startBotGame()
 {
-	// Change this bool value to enable training mode (training warmup book)
-	bool is_training_mode = false;
-	ofstream hard_moves_stream;
-	unordered_set<string> seen_lines;
-	if (is_training_mode)
-	{
-		hard_moves_stream = ofstream("hard_moves.txt");
-	}
-
 	Solver solver;
 	loadOpeningBook(solver, "depth_12_scores_7x6.book");
 	warmup(solver);
@@ -323,25 +314,15 @@ void startBotGame()
 		 << "THE GAME HAS STARTED\n"
 		 << "<------------------>\n\n";
 
-	string initial_sequence = "";
-	if (is_training_mode)
-		initial_sequence = "44444";
-	string sequence = initial_sequence;
+	string sequence = "";
 	Position P;
 	P.Play(sequence);
 
-	int move;
-	string player_name;
-	bool is_red_turn;
+	int move = -1;
+	string player_name = "";
+	bool is_red_turn = false;
 	while (1)
 	{
-		if (P.nbMoves() == 14 && is_training_mode)
-		{
-			sequence = initial_sequence;
-			P = Position();
-			P.Play(sequence);
-		}
-
 		is_red_turn = (sequence.size() + 1) % 2;
 		cout << "Moves: " << sequence.size() << "\n";
 		printConnectFourBoard(sequence);
@@ -354,15 +335,77 @@ void startBotGame()
 		cout << player_name << " is thinking...\n";
 
 		auto start = chrono::high_resolution_clock::now();
-		// if (P.nbMoves() == 7 && is_training_mode)
+		move = solver.FindBestMove(P);
+		auto end = chrono::high_resolution_clock::now();
+		chrono::duration<double, milli> duration = end - start;
+
+		cout << player_name << " has played: column " << move + 1 << ", " << duration.count() << " ms.\n";
+
+		if (P.IsWinningMove(move))
+		{
+			sequence += to_string(move + 1);
+			printConnectFourBoard(sequence);
+			cout << player_name << " won!\n";
+			return;
+		}
+
+		P.PlayCol(move);
+		sequence += to_string(move + 1);
+	}
+}
+
+void startTraining()
+{
+	ofstream hard_moves_stream("hard_moves.txt");
+	unordered_set<string> seen_lines;
+
+	Solver solver;
+	loadOpeningBook(solver, "depth_12_scores_7x6.book");
+	warmup(solver);
+
+	cout << "\n<------------------>\n"
+		 << "THE GAME HAS STARTED\n"
+		 << "<------------------>\n\n";
+
+	string initial_sequence = "44444";
+	string sequence = initial_sequence;
+	Position P;
+	P.Play(sequence);
+
+	int move;
+	string player_name;
+	bool is_red_turn;
+	while (1)
+	{
+		if (P.nbMoves() == 15)
+		{
+			sequence = initial_sequence;
+			P = Position();
+			P.Play(sequence);
+		}
+
+		is_red_turn = (sequence.size() + 1) % 2;
+		cout << "Position: " << sequence << ", " << sequence.size() << " moves\n";
+
+		if (is_red_turn)
+			player_name = "Red";
+		else
+			player_name = "Yellow";
+
+		cout << player_name << " is thinking...\n";
+
+		auto start = chrono::high_resolution_clock::now();
+		// Play randomly at the 7th move of the board
+		// if (P.nbMoves() == 7)
 		// 	move = solver.RandomMove();
 		// else
 		move = solver.FindBestMove(P);
 		auto end = chrono::high_resolution_clock::now();
 		chrono::duration<double, milli> duration = end - start;
 
-		if (duration.count() >= 2000 && is_training_mode && seen_lines.find(sequence) == seen_lines.end())
+		if (duration.count() >= 2000 && seen_lines.find(sequence) == seen_lines.end())
 		{
+			cout << "HARD MOVE FOUND: " << sequence << "\n";
 			seen_lines.insert(sequence);
 			hard_moves_stream << sequence << "\n";
 			hard_moves_stream.flush();
@@ -389,24 +432,27 @@ int main(int argc, char **argv)
 	{
 		if (strcmp(argv[1], "-t") == 0 || strcmp(argv[1], "--test") == 0)
 		{
-			// The current test is tests/10_moves.test
 			runTest();
 		}
-		else if (strcmp(argv[1], "-f") == 0 || strcmp(argv[1], "--find_move") == 0)
+		else if (strcmp(argv[1], "-f") == 0 || strcmp(argv[1], "--find") == 0)
 		{
 			findMoveAndCalculateScore();
 		}
-		else if (strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--continuous_find") == 0)
+		else if (strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--cfind") == 0)
 		{
 			continuouslyFindMoveAndCalculateScore();
 		}
 		else if (strcmp(argv[1], "-p") == 0 || strcmp(argv[1], "--play") == 0)
 		{
-			startGame();
+			startPlayerVsBotGame();
 		}
-		else if (strcmp(argv[1], "-b") == 0 || strcmp(argv[1], "--bot_game") == 0)
+		else if (strcmp(argv[1], "-b") == 0 || strcmp(argv[1], "--botgame") == 0)
 		{
 			startBotGame();
+		}
+		else if (strcmp(argv[1], "-tr") == 0 || strcmp(argv[1], "--training") == 0)
+		{
+			startTraining();
 		}
 		else
 		{
@@ -416,7 +462,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		startGame();
+		startPlayerVsBotGame();
 	}
 
 	return 0;
