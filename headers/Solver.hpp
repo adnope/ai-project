@@ -162,7 +162,7 @@ public:
 		return nodeCount;
 	}
 
-	void LoadBook(std::string filename)
+	void LoadBook(const std::string& filename)
 	{
 		book.load(filename);
 	}

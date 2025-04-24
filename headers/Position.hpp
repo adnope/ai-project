@@ -198,9 +198,6 @@ private:
 
 	static unsigned int CountSetBits(uint64_t num)
 	{
-		unsigned int c = 0;
-		for (c = 0; num; c++)
-			num &= num - 1;
-		return c;
+		return __builtin_popcountll(num);
 	}
 };
