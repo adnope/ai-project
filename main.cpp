@@ -357,7 +357,7 @@ void startBotGame()
 		// if (P.nbMoves() == 7 && is_training_mode)
 		// 	move = solver.RandomMove();
 		// else
-			move = solver.FindBestMove(P);
+		move = solver.FindBestMove(P);
 		auto end = chrono::high_resolution_clock::now();
 		chrono::duration<double, milli> duration = end - start;
 

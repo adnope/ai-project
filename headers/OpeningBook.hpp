@@ -13,8 +13,7 @@ class OpeningBook
 public:
     TranspositionTable *T;
 
-    OpeningBook(TranspositionTable *table) :T(table) {}
-
+    OpeningBook(TranspositionTable *table) : T(table) {}
 
     void save(const std::string &filename) const
     {

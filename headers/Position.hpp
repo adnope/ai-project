@@ -122,7 +122,8 @@ public:
 		key *= 3;
 	}
 
-	bool isEmpty() const {
+	bool isEmpty() const
+	{
 		return (mask == 0);
 	}
 

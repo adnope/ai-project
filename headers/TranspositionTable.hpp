@@ -72,5 +72,4 @@ public:
 	{
 		return reinterpret_cast<const uint8_t *>(&T[0].val);
 	}
-
 };
