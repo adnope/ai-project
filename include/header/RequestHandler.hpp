@@ -55,7 +55,7 @@ private:
 public:
     RequestHandler(string ip, uint16_t port) : ip(ip), port(port)
     {
-        solver.LoadBookAndWarmup("data/depth_12_scores_7x6.book", "data/warmup.book");
+        solver.GetReady();
     }
 
     void run()

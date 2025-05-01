@@ -1,10 +1,6 @@
 #include "header/Position.hpp"
 #include "header/Solver.hpp"
-#include <fstream>
 #include <unordered_set>
-#include <iostream>
-#include <chrono>
-#include <sstream>
 
 using namespace std;
 
@@ -41,7 +37,7 @@ void removeDuplicateLines(const string &file_name)
 void genMoves(string input_file)
 {
     Solver solver;
-    solver.LoadBookAndWarmup("data/depth_12_scores_7x6.book", "data/warmup.book");
+    solver.GetReady();
 
     string line;
     ofstream ofs("data/warmup.book", ios::app);

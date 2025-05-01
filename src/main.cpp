@@ -1,10 +1,8 @@
 #include "header/RequestHandler.hpp"
 #include "header/Solver.hpp"
+#include "header/Game.hpp"
+#include "lib/argparse.hpp"
 
-#include <iostream>
-#include <chrono>
-#include <fstream>
-#include <sstream>
 #include <unordered_set>
 
 using namespace std;
@@ -20,7 +18,7 @@ int runTest()
 		return 1;
 	}
 
-	solver.LoadBookAndWarmup("data/depth_12_scores_7x6.book", "data/warmup.book");
+	solver.GetReady();
 
 	string line;
 	int correct_score;
@@ -63,7 +61,7 @@ int runTest()
 void findMoveAndCalculateScore()
 {
 	Solver solver;
-	solver.LoadBookAndWarmup("data/depth_12_scores_7x6.book", "data/warmup.book");
+	solver.GetReady();
 
 	string line;
 	while (getline(cin, line))
@@ -98,7 +96,7 @@ void findMoveAndCalculateScore()
 void continuouslyFindMoveAndCalculateScore()
 {
 	Solver solver;
-	solver.LoadBookAndWarmup("data/depth_12_scores_7x6.book", "data/warmup.book");
+	solver.GetReady();
 
 	string current_sequence;
 	Position P;
@@ -132,200 +130,13 @@ void continuouslyFindMoveAndCalculateScore()
 	}
 }
 
-void printConnectFourBoard(const string &moves)
-{
-	const int ROWS = Position::HEIGHT;
-	const int COLS = Position::WIDTH;
-	char board[ROWS][COLS] = {0};
-
-	// Initialize empty board
-	for (int i = 0; i < ROWS; i++)
-	{
-		for (int j = 0; j < COLS; j++)
-		{
-			board[i][j] = '.';
-		}
-	}
-
-	// Process each move
-	for (size_t i = 0; i < moves.size(); i++)
-	{
-		int col = moves[i] - '1'; // Convert char to 0-based column index
-		if (col < 0 || col >= COLS)
-		{
-			cerr << "Invalid column: " << moves[i] << endl;
-			return;
-		}
-
-		// Find the first empty row in the column
-		int row = ROWS - 1;
-		while (row >= 0 && board[row][col] != '.')
-		{
-			row--;
-		}
-
-		if (row < 0)
-		{
-			cerr << "Column " << col + 1 << " is already full!" << endl;
-			return;
-		}
-
-		// Place the piece (alternate between 'R' and 'Y')
-		board[row][col] = (i % 2 == 0) ? 'x' : 'o';
-	}
-
-	// Print the board
-	for (int i = 0; i < ROWS; i++)
-	{
-		cout << "|";
-		for (int j = 0; j < COLS; j++)
-		{
-			cout << board[i][j] << "|";
-		}
-		cout << endl;
-	}
-
-	// Print column numbers
-	cout << " ";
-	for (int j = 1; j <= COLS; j++)
-	{
-		cout << j << " ";
-	}
-	cout << endl;
-}
-
-void startPlayerVsBotGame()
-{
-	Solver solver;
-	solver.LoadBookAndWarmup("data/depth_12_scores_7x6.book", "data/warmup.book");
-
-	string sequence = "";
-	Position P;
-	P.Play(sequence);
-
-	cout << "Choose your side:\n"
-		 << "[1]: Red\n"
-		 << "[2]: Yellow\n"
-		 << "Enter your choice: ";
-
-	int choice;
-	while (cin >> choice)
-	{
-		if (choice == 1)
-		{
-			break;
-		}
-		else if (choice == 2)
-		{
-			int best_move = solver.FindBestMove(P);
-			P.PlayCol(best_move);
-			sequence += to_string(best_move + 1);
-			break;
-		}
-		else
-		{
-			cout << "Invalid choice\n"
-				 << "Enter your choice: ";
-		}
-	}
-
-	cout << "The game has started!\n";
-
-	int player_move;
-	while (1)
-	{
-		printConnectFourBoard(sequence);
-		cout << "Enter your move: column: ";
-		cin >> player_move;
-
-		while (player_move < 1 || player_move > Position::WIDTH)
-		{
-			cout << "Invalid move\nEnter your move: ";
-			cin >> player_move;
-		}
-
-		if (P.IsWinningMove(player_move - 1))
-		{
-			sequence += to_string(player_move);
-			printConnectFourBoard(sequence);
-			cout << "You win!\n";
-			break;
-		}
-
-		sequence += to_string(player_move);
-		P.PlayCol(player_move - 1);
-
-		int ai_move = solver.FindBestMove(P);
-		if (P.IsWinningMove(ai_move))
-		{
-			cout << "Bot has played: column " << ai_move + 1 << endl;
-			sequence += to_string(ai_move + 1);
-			printConnectFourBoard(sequence);
-			cout << "You lose!\n";
-			break;
-		}
-		P.PlayCol(ai_move);
-		sequence += to_string(ai_move + 1);
-		cout << "Bot has played: column " << ai_move + 1 << endl;
-	}
-}
-
-void startBotGame()
-{
-	Solver solver;
-	solver.LoadBookAndWarmup("data/depth_12_scores_7x6.book", "data/warmup.book");
-
-	cout << "\n<------------------>\n"
-		 << "THE GAME HAS STARTED\n"
-		 << "<------------------>\n\n";
-
-	string sequence = "";
-	Position P;
-	P.Play(sequence);
-
-	int move = -1;
-	string player_name = "";
-	bool is_red_turn = false;
-	while (1)
-	{
-		is_red_turn = (sequence.size() + 1) % 2;
-		cout << "Moves: " << sequence.size() << "\n";
-		printConnectFourBoard(sequence);
-
-		if (is_red_turn)
-			player_name = "Red";
-		else
-			player_name = "Yellow";
-
-		cout << player_name << " is thinking...\n";
-
-		auto start = chrono::high_resolution_clock::now();
-		move = solver.FindBestMove(P);
-		auto end = chrono::high_resolution_clock::now();
-		chrono::duration<double, milli> duration = end - start;
-
-		cout << player_name << " has played: column " << move + 1 << ", " << duration.count() << " ms.\n";
-
-		if (P.IsWinningMove(move))
-		{
-			sequence += to_string(move + 1);
-			printConnectFourBoard(sequence);
-			cout << player_name << " won!\n";
-			return;
-		}
-
-		P.PlayCol(move);
-		sequence += to_string(move + 1);
-	}
-}
-
 void startTraining()
 {
 	ofstream hard_moves_stream("hard_moves.txt");
 	unordered_set<string> seen_lines;
 
 	Solver solver;
-	solver.LoadBookAndWarmup("data/depth_12_scores_7x6.book", "data/warmup.book");
+	solver.GetReady();
 
 	cout << "\n<------------------>\n"
 		 << "THE GAME HAS STARTED\n"
@@ -377,14 +188,6 @@ void startTraining()
 
 		cout << player_name << " has played: column " << move + 1 << ", " << duration.count() << " ms.\n";
 
-		if (P.IsWinningMove(move))
-		{
-			sequence += to_string(move + 1);
-			printConnectFourBoard(sequence);
-			cout << player_name << " won!\n";
-			return;
-		}
-
 		P.PlayCol(move);
 		sequence += to_string(move + 1);
 	}
@@ -398,46 +201,78 @@ void handleAPIRequest(string ip, int port)
 
 int main(int argc, char **argv)
 {
-	if (argc > 1)
+	argparse::ArgumentParser program("c4ai", "1.0", argparse::default_arguments::help);
+
+	program.add_argument("-f", "--find").help("Find best move for a given sequence").flag();
+	program.add_argument("-c", "--cfind").help("Continuously find best move as the user inputs").flag();
+	program.add_argument("-t", "--test").help("Run the tests").flag();
+	program.add_argument("-p", "--play").help("Play a game with our bot").flag();
+	program.add_argument("-b", "--botgame").help("See a match between 2 bots").flag();
+	program.add_argument("-tr", "--train").help("Perform a training session to find hard moves").flag();
+	program.add_argument("-w", "--web").help("Handle API requests").flag();
+
+	program.add_description("Connect four AI by Tralalero Tralala");
+
+	try
 	{
-		if (strcmp(argv[1], "-t") == 0 || strcmp(argv[1], "--test") == 0)
+		program.parse_args(argc, argv);
+		if (argc == 1)
 		{
-			runTest();
-		}
-		else if (strcmp(argv[1], "-f") == 0 || strcmp(argv[1], "--find") == 0)
-		{
-			findMoveAndCalculateScore();
-		}
-		else if (strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--cfind") == 0)
-		{
-			continuouslyFindMoveAndCalculateScore();
-		}
-		else if (strcmp(argv[1], "-p") == 0 || strcmp(argv[1], "--play") == 0)
-		{
-			startPlayerVsBotGame();
-		}
-		else if (strcmp(argv[1], "-b") == 0 || strcmp(argv[1], "--botgame") == 0)
-		{
-			startBotGame();
-		}
-		else if (strcmp(argv[1], "-tr") == 0 || strcmp(argv[1], "--training") == 0)
-		{
-			startTraining();
-		}
-		else if (strcmp(argv[1], "-w") == 0 || strcmp(argv[1], "--web") == 0)
-		{
-			handleAPIRequest("0.0.0.0", 8112);
-		}
-		else
-		{
-			cerr << "Argument not found.\n";
-			return 1;
+			std::cout << program;
+			std::exit(0);
 		}
 	}
-	else
+	catch (const std::exception &err)
 	{
-		startPlayerVsBotGame();
+		std::cerr << err.what() << std::endl;
+		std::cerr << program;
+		std::exit(1);
 	}
+
+	int flag_count = 0;
+
+	if (program["-f"] == true)
+		++flag_count;
+	if (program["-c"] == true)
+		++flag_count;
+	if (program["-t"] == true)
+		++flag_count;
+	if (program["-p"] == true)
+		++flag_count;
+	if (program["-b"] == true)
+		++flag_count;
+	if (program["-tr"] == true)
+		++flag_count;
+	if (program["-w"] == true)
+		++flag_count;
+
+	if (flag_count != 1)
+	{
+		std::cerr << "Error: You must specify exactly one option.\n";
+		std::cerr << program;
+		std::exit(1);
+	}
+
+	if (program["-t"] == true)
+		runTest();
+	else if (program["-f"] == true)
+		findMoveAndCalculateScore();
+	else if (program["-c"] == true)
+		continuouslyFindMoveAndCalculateScore();
+	else if (program["-p"] == true)
+	{
+		Game game;
+		game.StartPlayerVsBotGame();
+	}
+	else if (program["-b"] == true)
+	{
+		Game game;
+		game.StartBotGame();
+	}
+	else if (program["-tr"] == true)
+		startTraining();
+	else if (program["-w"] == true)
+		handleAPIRequest("0.0.0.0", 8112);
 
 	return 0;
 }

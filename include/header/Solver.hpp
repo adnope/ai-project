@@ -8,6 +8,9 @@
 #include <chrono>
 #include <sstream>
 
+const std::string OPENING_BOOK_PATH = "data/depth_12_scores_7x6.book";
+const std::string WARMUP_BOOK_PATH = "data/warmup.book";
+
 class Solver
 {
 private:
@@ -164,23 +167,23 @@ public:
 		return nodeCount;
 	}
 
-	void LoadBook(const std::string& filename)
+	void LoadBook()
 	{
 		auto start = std::chrono::high_resolution_clock::now();
-		book.load(filename);
+		book.load(OPENING_BOOK_PATH);
 		auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> duration = end - start;
         std::cout << "Opening book loaded: " << duration.count() / 1000 << " seconds.\n";
 	}
 
-	void Warmup(const std::string& filename)
+	void Warmup()
 	{
 		auto start = std::chrono::high_resolution_clock::now();
         std::string line;
         std::string move;
         int score;
         int count = 0;
-        std::ifstream ifs(filename);
+        std::ifstream ifs(WARMUP_BOOK_PATH);
         while (getline(ifs, line))
         {
             std::istringstream iss(line);
@@ -195,10 +198,10 @@ public:
         std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
 	}
 
-	void LoadBookAndWarmup(const std::string &book_name, const std::string &warmup_book_name)
+	void GetReady()
 	{
-		LoadBook(book_name);
-		Warmup(warmup_book_name);
+		LoadBook();
+		Warmup();
 	}
 
 	void Reset()

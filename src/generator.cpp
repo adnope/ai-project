@@ -2,12 +2,7 @@
 #include "header/Solver.hpp"
 #include "header/OpeningBook.hpp"
 
-#include <iostream>
 #include <unordered_set>
-#include <fstream>
-#include <chrono>
-#include <sstream>
-
 /**
  * How to use the generator to generate an opening book:
  *
