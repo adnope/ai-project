@@ -1,3 +1,4 @@
+#include "headers/RequestHandler.hpp"
 #include "headers/Solver.hpp"
 
 #include <iostream>
@@ -7,37 +8,6 @@
 #include <unordered_set>
 
 using namespace std;
-
-void loadOpeningBook(Solver &solver, string book_name)
-{
-	auto start = chrono::high_resolution_clock::now();
-	solver.LoadBook(book_name);
-	auto end = chrono::high_resolution_clock::now();
-	chrono::duration<double, milli> duration = end - start;
-	std::cout << "Loaded opening book in " << duration.count() / 1000 << " seconds.\n";
-}
-
-void warmup(Solver &solver)
-{
-	string line;
-	string move;
-	int score;
-	int count = 0;
-	ifstream ifs("warmup.book");
-	auto start = chrono::high_resolution_clock::now();
-	while (getline(ifs, line))
-	{
-		istringstream iss(line);
-		iss >> move >> score;
-		Position P;
-		P.Play(move);
-		solver.transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
-		count++;
-	}
-	auto end = chrono::high_resolution_clock::now();
-	chrono::duration<double, milli> duration = end - start;
-	std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
-}
 
 int runTest()
 {
@@ -50,8 +20,7 @@ int runTest()
 		return 1;
 	}
 
-	loadOpeningBook(solver, "depth_12_scores_7x6.book");
-	warmup(solver);
+	solver.LoadBookAndWarmup("depth_12_scores_7x6.book", "warmup.book");
 
 	string line;
 	int correct_score;
@@ -94,8 +63,7 @@ int runTest()
 void findMoveAndCalculateScore()
 {
 	Solver solver;
-	loadOpeningBook(solver, "depth_12_scores_7x6.book");
-	warmup(solver);
+	solver.LoadBookAndWarmup("depth_12_scores_7x6.book", "warmup.book");
 
 	string line;
 	while (getline(cin, line))
@@ -130,8 +98,7 @@ void findMoveAndCalculateScore()
 void continuouslyFindMoveAndCalculateScore()
 {
 	Solver solver;
-	loadOpeningBook(solver, "depth_12_scores_7x6.book");
-	warmup(solver);
+	solver.LoadBookAndWarmup("depth_12_scores_7x6.book", "warmup.book");
 
 	string current_sequence;
 	Position P;
@@ -230,8 +197,7 @@ void printConnectFourBoard(const string &moves)
 void startPlayerVsBotGame()
 {
 	Solver solver;
-	loadOpeningBook(solver, "depth_12_scores_7x6.book");
-	warmup(solver);
+	solver.LoadBookAndWarmup("depth_12_scores_7x6.book", "warmup.book");
 
 	string sequence = "";
 	Position P;
@@ -307,8 +273,7 @@ void startPlayerVsBotGame()
 void startBotGame()
 {
 	Solver solver;
-	loadOpeningBook(solver, "depth_12_scores_7x6.book");
-	warmup(solver);
+	solver.LoadBookAndWarmup("depth_12_scores_7x6.book", "warmup.book");
 
 	cout << "\n<------------------>\n"
 		 << "THE GAME HAS STARTED\n"
@@ -360,8 +325,7 @@ void startTraining()
 	unordered_set<string> seen_lines;
 
 	Solver solver;
-	loadOpeningBook(solver, "depth_12_scores_7x6.book");
-	warmup(solver);
+	solver.LoadBookAndWarmup("depth_12_scores_7x6.book", "warmup.book");
 
 	cout << "\n<------------------>\n"
 		 << "THE GAME HAS STARTED\n"
@@ -426,6 +390,12 @@ void startTraining()
 	}
 }
 
+void handleAPIRequest(string ip, int port)
+{
+	RequestHandler requestHandler(ip, port);
+	requestHandler.run();
+}
+
 int main(int argc, char **argv)
 {
 	if (argc > 1)
@@ -453,6 +423,10 @@ int main(int argc, char **argv)
 		else if (strcmp(argv[1], "-tr") == 0 || strcmp(argv[1], "--training") == 0)
 		{
 			startTraining();
+		}
+		else if (strcmp(argv[1], "-w") == 0 || strcmp(argv[1], "--web") == 0)
+		{
+			handleAPIRequest("0.0.0.0", 8112);
 		}
 		else
 		{
