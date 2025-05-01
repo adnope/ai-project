@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <cstdint>
 #include <cassert>
 #include <string>
@@ -12,6 +13,14 @@ constexpr static uint64_t Bottom(int width, int height)
 class Position
 {
 public:
+	uint64_t GetMask() const {
+		return mask;
+	}
+
+	uint64_t GetCurrentPosition() const {
+		return current_position;
+	}
+
 	static const int WIDTH = 7;
 	static const int HEIGHT = 6;
 	static const int MIN_SCORE = -(WIDTH * HEIGHT) / 2 + 3;
@@ -128,6 +137,30 @@ public:
 	}
 
 	Position() : current_position{0}, mask{0}, moves{0} {}
+
+	Position(const std::vector<std::vector<int>> &board) : current_position{0}, mask{0}, moves{0}
+	{
+		for (auto v : board) {
+			for (int i : v) {
+				if (i != 0) moves++;
+			}
+		}
+
+		int current_player = (moves % 2 == 0) ? 1 : 2;
+
+		for (int row = 0; row < int(board.size()); ++row)
+		{
+			for (int col = 0; col < int(board[0].size()); ++col)
+			{
+				if (board[row][col] != 0)
+				{
+					uint64_t move = UINT64_C(1) << (7 * col + 5 - row);
+					mask |= move;
+					if (board[row][col] == current_player) current_position |= move;
+				}
+			}
+		}
+	}
 
 private:
 	uint64_t current_position;
