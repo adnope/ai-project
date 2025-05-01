@@ -1,6 +1,6 @@
-#include "headers/Position.hpp"
-#include "headers/Solver.hpp"
-#include "headers/OpeningBook.hpp"
+#include "header/Position.hpp"
+#include "header/Solver.hpp"
+#include "header/OpeningBook.hpp"
 
 #include <iostream>
 #include <unordered_set>
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
         // Explore
         if (atoi(argv[1]) >= 0 && atoi(argv[1]) <= 42)
         {
-            std::ofstream moves_explored_stream("moves_explored.txt");
+            std::ofstream moves_explored_stream("data/moves_explored.txt");
             std::unordered_set<uint64_t> visited;
             int number_of_explored_moves = 0;
 

@@ -1,10 +1,11 @@
 *.exe
 *.log
+*.o
+*.d
 
 .venv/
 .vscode/
-main
+build/
 draft/
 __pycache__/
-setup.sh
 hard_moves.txt

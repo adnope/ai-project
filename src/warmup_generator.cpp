@@ -1,5 +1,5 @@
-#include "headers/Position.hpp"
-#include "headers/Solver.hpp"
+#include "header/Position.hpp"
+#include "header/Solver.hpp"
 #include <fstream>
 #include <unordered_set>
 #include <iostream>
@@ -7,28 +7,6 @@
 #include <sstream>
 
 using namespace std;
-
-void warmup(Solver &solver)
-{
-	string line;
-	string move;
-	int score;
-	int count = 0;
-	ifstream ifs("warmup.book");
-	auto start = chrono::high_resolution_clock::now();
-	while (getline(ifs, line))
-	{
-		istringstream iss(line);
-		iss >> move >> score;
-		Position P;
-		P.Play(move);
-		solver.transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
-		count++;
-	}
-	auto end = chrono::high_resolution_clock::now();
-	chrono::duration<double, milli> duration = end - start;
-	std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
-}
 
 void removeDuplicateLines(const string &file_name)
 {
@@ -60,22 +38,13 @@ void removeDuplicateLines(const string &file_name)
     outFile.close();
 }
 
-void loadOpeningBook(Solver &solver, string book_name)
-{
-    auto start = chrono::high_resolution_clock::now();
-    solver.LoadBook(book_name);
-    auto end = chrono::high_resolution_clock::now();
-    chrono::duration<double, milli> duration = end - start;
-    cout << "Loaded opening book in " << duration.count() / 1000 << " seconds.\n";
-}
-
 void genMoves(string input_file)
 {
     Solver solver;
-    loadOpeningBook(solver, "depth_12_scores_7x6.book");
-    warmup(solver);
+    solver.LoadBookAndWarmup("data/depth_12_scores_7x6.book", "data/warmup.book");
+
     string line;
-    ofstream ofs("warmup.book", ios::app);
+    ofstream ofs("data/warmup.book", ios::app);
 
     ifstream ifs(input_file);
     int count = 0;
@@ -101,10 +70,10 @@ void genMoves(string input_file)
     }
 }
 
-int main(int argc, char const *argv[])
+int main()
 {
     removeDuplicateLines("hard_moves.txt");
     genMoves("hard_moves.txt");
-    removeDuplicateLines("warmup.book");
+    removeDuplicateLines("data/warmup.book");
     return 0;
 }

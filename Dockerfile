@@ -18,9 +18,9 @@ COPY . .
 
 RUN make
 
-RUN chmod +x main
+RUN chmod +x build/*
 
 EXPOSE $PORT
 
 # CMD uvicorn app:app --host 0.0.0.0 --port $PORT
-CMD ./main -w
+CMD ["./build/main", "-w"]

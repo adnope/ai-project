@@ -1,7 +1,7 @@
 #pragma once
 
-#include "httplib.h"
-#include "json.hpp"
+#include "lib/httplib.h"
+#include "lib/json.hpp"
 #include "Solver.hpp"
 #include "Position.hpp"
 #include <chrono>
@@ -47,13 +47,15 @@ private:
         Position P(board);
         int move = solver.FindBestMove(P);
 
+        cout << "[Solver] Number of moves: " << P.nbMoves() << ", Best move: " << move + 1 << "\n";
+
         return move + 1;
     }
 
 public:
     RequestHandler(string ip, uint16_t port) : ip(ip), port(port)
     {
-        solver.LoadBookAndWarmup("depth_12_scores_7x6.book", "warmup.book");
+        solver.LoadBookAndWarmup("data/depth_12_scores_7x6.book", "data/warmup.book");
     }
 
     void run()
@@ -63,7 +65,7 @@ public:
             [&](const httplib::Request &req, httplib::Response &res) {
                 try {
                     json req_data = json::parse(req.body);
-                    cout << "New request: " << req_data.dump() << "\n";
+                    cout << "\nNew request: " << req_data.dump() << "\n\n";
         
                     vector<vector<int>> board = req_data["board"].get<vector<vector<int>>>();
                     vector<int> valid_moves = req_data["valid_moves"].get<vector<int>>();
@@ -75,7 +77,6 @@ public:
                     auto start = chrono::high_resolution_clock::now();
 
                     int move = FindMove(board, is_new_game, current_player);
-                    cout << "Found best move: " << move << "\n";
 
                     json json_response = {
                         {"move", move}
@@ -85,7 +86,7 @@ public:
 
                     auto end = chrono::high_resolution_clock::now();
                     chrono::duration<double, milli> duration = end - start;
-                    cout << "API & Move time: " << duration.count() << " ms.\n";
+                    cout << "[Solver] Total time: " << duration.count() << " ms.\n";
                 } catch (const exception &e) {
                     res.status = 400;
                     res.set_content(json{{"error", e.what()}}.dump(), "application/json");

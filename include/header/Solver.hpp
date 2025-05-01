@@ -5,6 +5,8 @@
 #include "MoveSorter.hpp"
 #include "OpeningBook.hpp"
 #include <random>
+#include <chrono>
+#include <sstream>
 
 class Solver
 {
