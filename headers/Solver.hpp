@@ -164,7 +164,39 @@ public:
 
 	void LoadBook(const std::string& filename)
 	{
+		auto start = std::chrono::high_resolution_clock::now();
 		book.load(filename);
+		auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> duration = end - start;
+        std::cout << "Opening book loaded: " << duration.count() / 1000 << " seconds.\n";
+	}
+
+	void Warmup(const std::string& filename)
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+        std::string line;
+        std::string move;
+        int score;
+        int count = 0;
+        std::ifstream ifs(filename);
+        while (getline(ifs, line))
+        {
+            std::istringstream iss(line);
+            iss >> move >> score;
+            Position P;
+            P.Play(move);
+            transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
+            count++;
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> duration = end - start;
+        std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
+	}
+
+	void LoadBookAndWarmup(const std::string &book_name, const std::string &warmup_book_name)
+	{
+		LoadBook(book_name);
+		Warmup(warmup_book_name);
 	}
 
 	void Reset()
