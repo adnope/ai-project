@@ -1,26 +1,24 @@
-FROM python:3.13.2-slim
+# For alpine
+# FROM alpine:latest
+# WORKDIR /app
+# RUN apk add --no-cache build-base
+# COPY . .
+# RUN make build/main
+# ENTRYPOINT ["./build/main", "-w"]
 
+# For python
+FROM python:3.13.3-slim
 WORKDIR /app
-
 RUN apt-get update && apt-get install -y \
     build-essential \
     g++ \
     && rm -rf /var/lib/apt/lists/*
-
-# PYTHONUNBUFFERED=1
-
-# COPY requirements.txt .
-
-# RUN pip install --upgrade pip
-# RUN pip install -r requirements.txt
-
+ENV PYTHONUNBUFFERED=1
+COPY requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 COPY . .
-
-RUN make
-
+RUN make build/main
 RUN chmod +x build/*
-
-# EXPOSE $PORT
-
-# CMD uvicorn app:app --host 0.0.0.0 --port $PORT
-CMD ["./build/main", "-w"]
+EXPOSE $PORT
+CMD uvicorn app:app --host 0.0.0.0 --port $PORT
