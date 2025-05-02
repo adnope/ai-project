@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 COPY . .
-RUN make build/main
+RUN make build/main && rm -rf build/obj .dockerignore Dockerfile include Makefile requirements.txt src/*.cpp
 RUN chmod +x build/*
-EXPOSE $PORT
-CMD uvicorn app:app --host 0.0.0.0 --port $PORT
+
+CMD python src/python/app.py
