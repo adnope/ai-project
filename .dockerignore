@@ -14,6 +14,3 @@ README.md
 *.exe
 hard_moves.txt
 docker-compose.yml
-
-# For alpine
-# src/python/

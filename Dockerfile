@@ -1,12 +1,3 @@
-# For alpine
-# FROM alpine:latest
-# WORKDIR /app
-# RUN apk add --no-cache build-base
-# COPY . .
-# RUN make build/main
-# ENTRYPOINT ["./build/main", "-w"]
-
-# For python
 FROM python:3.13.3-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y \
