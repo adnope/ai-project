@@ -68,8 +68,8 @@ void genMoves(string input_file)
 
 int main()
 {
-    removeDuplicateLines("hard_moves.txt");
-    genMoves("hard_moves.txt");
+    removeDuplicateLines("data/hard_moves.txt");
+    genMoves("data/hard_moves.txt");
     removeDuplicateLines("data/warmup.book");
     return 0;
 }

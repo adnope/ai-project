@@ -147,7 +147,7 @@ void generateOpeningBook(const std::string& book_name) {
     OpeningBook book = OpeningBook(table);
 
     std::ostringstream book_file;
-    book_file << "depth_12_scores_7x6.book";
+    book_file << "data/depth_12_scores_7x6.book";
     book.save(book_file.str());
 }
 
