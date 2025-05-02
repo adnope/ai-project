@@ -1,13 +1,16 @@
-__pycache__/
-.vscode/
-.venv/
 .git/
 .github/
-.gitignore
-draft
-README.md
+.venv/
+.vscode/
+build/
+certbot/
+draft/
+nginx/
+__pycache__/
 tests/
 
+.gitignore
+README.md
 *.exe
-
 hard_moves.txt
+docker-compose.yml

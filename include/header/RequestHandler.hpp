@@ -35,6 +35,7 @@ private:
             cout << i << " ";
         }
         cout << "\nIs new game: " << boolalpha << is_new_game << "\n";
+        cout.flush();
     }
 
     int FindMove(const vector<vector<int>> &board, const bool &is_new_game, const int &current_player)
@@ -66,6 +67,7 @@ public:
                 try {
                     json req_data = json::parse(req.body);
                     cout << "\nNew request: " << req_data.dump() << "\n\n";
+                    cout.flush();
         
                     vector<vector<int>> board = req_data["board"].get<vector<vector<int>>>();
                     vector<int> valid_moves = req_data["valid_moves"].get<vector<int>>();
@@ -87,6 +89,7 @@ public:
                     auto end = chrono::high_resolution_clock::now();
                     chrono::duration<double, milli> duration = end - start;
                     cout << "[Solver] Total time: " << duration.count() << " ms.\n";
+                    cout.flush();
                 } catch (const exception &e) {
                     res.status = 400;
                     res.set_content(json{{"error", e.what()}}.dump(), "application/json");
