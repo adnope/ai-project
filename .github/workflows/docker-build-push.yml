@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main
+      - python-api
 
 jobs:
   build-and-push:
@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t adnope/ai-project:latest .
+        run: docker build -t adnope/ai-project:python-api .
 
       - name: Push Docker image
-        run: docker push adnope/ai-project:latest
+        run: docker push adnope/ai-project:python-api
