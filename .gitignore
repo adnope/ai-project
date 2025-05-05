@@ -12,3 +12,4 @@ build/
 draft/
 __pycache__/
 hard_moves.txt
+depth_1-12_scores.txt
