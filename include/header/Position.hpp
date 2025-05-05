@@ -79,11 +79,6 @@ public:
 		return moves;
 	}
 
-	uint64_t Key() const
-	{
-		return current_position + mask;
-	}
-
 	uint64_t PossibleNonLosingMoves() const
 	{
 		assert(!CanWinNext());

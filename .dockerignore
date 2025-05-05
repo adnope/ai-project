@@ -1,16 +1,14 @@
 .git/
 .github/
-.venv/
 .vscode/
+.venv/
 build/
 certbot/
 draft/
 nginx/
-__pycache__/
 tests/
 
 .gitignore
 README.md
-*.exe
 hard_moves.txt
 docker-compose.yml

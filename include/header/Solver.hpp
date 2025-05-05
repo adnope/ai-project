@@ -174,6 +174,7 @@ public:
 		auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> duration = end - start;
         std::cout << "Opening book loaded: " << duration.count() / 1000 << " seconds.\n";
+		std::cout.flush();
 	}
 
 	void Warmup()
@@ -196,6 +197,7 @@ public:
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> duration = end - start;
         std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
+		std::cout.flush();
 	}
 
 	void GetReady()

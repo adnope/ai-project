@@ -35,14 +35,13 @@ private:
             cout << i << " ";
         }
         cout << "\nIs new game: " << boolalpha << is_new_game << "\n";
-        cout.flush();
     }
 
     int FindMove(const vector<vector<int>> &board, const bool &is_new_game, const int &current_player)
     {
         if (is_new_game && current_player == 1)
         {
-            return 4;
+            return 3;
         }
 
         Position P(board);
@@ -50,7 +49,7 @@ private:
 
         cout << "[Solver] Number of moves: " << P.nbMoves() << ", Best move: " << move + 1 << "\n";
 
-        return move + 1;
+        return move;
     }
 
 public:
@@ -67,7 +66,6 @@ public:
                 try {
                     json req_data = json::parse(req.body);
                     cout << "\nNew request: " << req_data.dump() << "\n\n";
-                    cout.flush();
         
                     vector<vector<int>> board = req_data["board"].get<vector<vector<int>>>();
                     vector<int> valid_moves = req_data["valid_moves"].get<vector<int>>();
@@ -100,6 +98,8 @@ public:
         svr.Post("/api/connect4-move", handle);
 
         cout << "The server is running at http://" << ip << ":" << port << "\n";
+        std::cout.flush();
+
         svr.listen(ip, port);
     }
 };

@@ -2,6 +2,7 @@
 *.log
 *.o
 *.d
+*.txt
 
 .venv/
 .vscode/
