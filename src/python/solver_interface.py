@@ -13,7 +13,7 @@ class SolverInterface:
 
     def init_process(self):
         try:
-            solver_path = os.path.join(os.path.dirname(__file__), "../../bin/main")
+            solver_path = os.path.join(os.path.dirname(__file__), "../../build/main")
             print(f"[Solver] Starting new solver process: {solver_path}")
 
             self.process = subprocess.Popen(

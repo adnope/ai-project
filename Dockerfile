@@ -6,10 +6,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 ENV PYTHONUNBUFFERED=1
 COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . .
 RUN make build/main
-RUN chmod +x build/*
-EXPOSE $PORT
-CMD uvicorn app:app --host 0.0.0.0 --port $PORT
+RUN chmod +x build/main
+
+CMD python src/python/app.py
