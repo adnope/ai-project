@@ -13,4 +13,5 @@ tests/
 README.md
 *.exe
 hard_moves.txt
+depth_1-12_scores.txt
 docker-compose.yml
