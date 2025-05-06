@@ -1,37 +1,38 @@
 #include "header/Position.hpp"
 #include "header/Solver.hpp"
+
 #include <unordered_set>
 
 using namespace std;
 
 void removeDuplicateLines(const string &file_name)
 {
-    ifstream inFile(file_name);
-    if (!inFile.is_open())
+    ifstream input_file(file_name);
+    if (!input_file.is_open())
         return;
 
-    vector<string> uniqueLines;
-    unordered_set<string> seenLines;
+    vector<string> unique_lines;
+    unordered_set<string> seen_lines;
     string line;
 
-    while (getline(inFile, line))
+    while (getline(input_file, line))
     {
-        if (seenLines.insert(line).second)
+        if (seen_lines.insert(line).second)
         {
-            uniqueLines.push_back(line);
+            unique_lines.push_back(line);
         }
     }
-    inFile.close();
+    input_file.close();
 
-    ofstream outFile(file_name, ios::trunc);
-    if (!outFile.is_open())
+    ofstream output_file(file_name, ios::trunc);
+    if (!output_file.is_open())
         return;
 
-    for (const auto &uniqueLine : uniqueLines)
+    for (const auto &uniqueLine : unique_lines)
     {
-        outFile << uniqueLine << "\n";
+        output_file << uniqueLine << "\n";
     }
-    outFile.close();
+    output_file.close();
 }
 
 void genMoves(string input_file)

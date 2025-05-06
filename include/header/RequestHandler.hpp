@@ -4,9 +4,9 @@
 #include "lib/json.hpp"
 #include "Solver.hpp"
 #include "Position.hpp"
+
 #include <chrono>
 
-using namespace std;
 using json = nlohmann::json;
 
 class RequestHandler
@@ -58,7 +58,7 @@ public:
         solver.GetReady();
     }
 
-    void run()
+    void Run()
     {
         auto handle
         {

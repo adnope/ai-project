@@ -14,7 +14,6 @@ private:
         const int COLS = Position::WIDTH;
         char board[ROWS][COLS] = {0};
 
-        // Initialize empty board
         for (int i = 0; i < ROWS; i++)
         {
             for (int j = 0; j < COLS; j++)
@@ -23,17 +22,15 @@ private:
             }
         }
 
-        // Process each move
         for (size_t i = 0; i < sequence.size(); i++)
         {
-            int col = sequence[i] - '1'; // Convert char to 0-based column index
+            int col = sequence[i] - '1';
             if (col < 0 || col >= COLS)
             {
                 std::cerr << "Invalid column: " << sequence[i] << "\n";
                 return;
             }
 
-            // Find the first empty row in the column
             int row = ROWS - 1;
             while (row >= 0 && board[row][col] != '.')
             {
@@ -46,11 +43,9 @@ private:
                 return;
             }
 
-            // Place the piece (alternate between 'R' and 'Y')
             board[row][col] = (i % 2 == 0) ? 'x' : 'o';
         }
 
-        // Print the board
         for (int i = 0; i < ROWS; i++)
         {
             std::cout << "|";
@@ -61,7 +56,6 @@ private:
             std::cout << std::endl;
         }
 
-        // Print column numbers
         std::cout << " ";
         for (int j = 1; j <= COLS; j++)
         {

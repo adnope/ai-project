@@ -195,7 +195,7 @@ void startTraining()
 void handleAPIRequest(string ip, int port)
 {
 	RequestHandler requestHandler(ip, port);
-	requestHandler.run();
+	requestHandler.Run();
 }
 
 int main(int argc, char **argv)
