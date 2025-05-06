@@ -8,6 +8,7 @@
 #include <chrono>
 
 using json = nlohmann::json;
+using namespace std;
 
 class RequestHandler
 {
@@ -98,7 +99,7 @@ public:
         svr.Post("/api/connect4-move", handle);
 
         cout << "The server is running at http://" << ip << ":" << port << "\n";
-        std::cout.flush();
+        cout.flush();
 
         svr.listen(ip, port);
     }
