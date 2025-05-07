@@ -21,9 +21,9 @@ private:
     void Log(const vector<vector<int>> &board, const int &current_player, const vector<int> &valid_moves, const bool &is_new_game)
     {
         cout << "Board: \n";
-        for (auto v : board)
+        for (const vector<int> &v : board)
         {
-            for (int i : v)
+            for (const int &i : v)
             {
                 cout << i << " ";
             }
@@ -38,11 +38,11 @@ private:
         cout << "\nIs new game: " << boolalpha << is_new_game << "\n";
     }
 
-    int FindMove(const vector<vector<int>> &board, const bool &is_new_game, const int &current_player)
+    int GetMoveFromSolver(const vector<vector<int>> &board, const bool &is_new_game, const int &current_player)
     {
         if (is_new_game && current_player == 1)
         {
-            return 3;
+            return solver.GetDefaultFirstMove();
         }
 
         Position P(board);
@@ -77,7 +77,7 @@ public:
     
                     auto start = chrono::high_resolution_clock::now();
 
-                    int move = FindMove(board, is_new_game, current_player);
+                    int move = GetMoveFromSolver(board, is_new_game, current_player);
 
                     json json_response = {
                         {"move", move}

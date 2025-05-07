@@ -207,6 +207,12 @@ public:
 		Warmup();
 	}
 
+	int GetDefaultFirstMove() const
+	{
+		constexpr int DEFAULT_FIRST_MOVE = 3;
+		return DEFAULT_FIRST_MOVE;
+	}
+
 	void Reset()
 	{
 		nodeCount = 0;
