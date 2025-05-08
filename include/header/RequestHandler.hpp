@@ -42,7 +42,7 @@ private:
     {
         if (is_new_game && current_player == 1)
         {
-            return 4;
+            return 3;
         }
 
         Position P(board);
@@ -50,7 +50,7 @@ private:
 
         cout << "[Solver] Number of moves: " << P.nbMoves() << ", Best move: " << move + 1 << "\n";
 
-        return move + 1;
+        return move;
     }
 
 public:

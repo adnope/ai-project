@@ -3,6 +3,7 @@
 *.o
 *.d
 
+.idea/
 .venv/
 .vscode/
 certbot/

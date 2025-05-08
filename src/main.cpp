@@ -79,6 +79,7 @@ void findMoveAndCalculateScore()
 			auto start = chrono::high_resolution_clock::now();
 			score = solver.Solve(P);
 			best_move = solver.FindBestMove(P);
+			cout << "Best move: " << best_move << "\n";
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
 
