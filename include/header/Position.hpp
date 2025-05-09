@@ -21,6 +21,10 @@ public:
 		return current_position;
 	}
 
+	uint64_t GetHiddenMask() const {
+		return hidden_mask;
+	}
+
 	static const int WIDTH = 7;
 	static const int HEIGHT = 6;
 	static const int MIN_SCORE = -(WIDTH * HEIGHT) / 2 + 3;
@@ -79,6 +83,11 @@ public:
 		return moves;
 	}
 
+	uint64_t Key() const
+	{
+		return current_position + mask;
+	}
+
 	uint64_t PossibleNonLosingMoves() const
 	{
 		assert(!CanWinNext());
@@ -133,11 +142,11 @@ public:
 
 	Position() : current_position{0}, mask{0}, moves{0} {}
 
-	Position(const std::vector<std::vector<int>> &board) : current_position{0}, mask{0}, moves{0}
+	Position(const std::vector<std::vector<int>> &board) : current_position{0}, mask{0}, hidden_mask{0}, moves{0}
 	{
 		for (auto v : board) {
 			for (int i : v) {
-				if (i != 0) moves++;
+				if (i == 1 || i == 2) moves++;
 			}
 		}
 
@@ -147,11 +156,16 @@ public:
 		{
 			for (int col = 0; col < int(board[0].size()); ++col)
 			{
-				if (board[row][col] != 0)
+				if (board[row][col] == 1 || board[row][col] == 2)
 				{
 					uint64_t move = UINT64_C(1) << (7 * col + 5 - row);
 					mask |= move;
 					if (board[row][col] == current_player) current_position |= move;
+				}
+				if (board[row][col] == 3)
+				{
+					uint64_t hidden_move = UINT64_C(1) << (7 * col + 5 - row);
+					hidden_mask |= hidden_move;
 				}
 			}
 		}
@@ -160,6 +174,7 @@ public:
 private:
 	uint64_t current_position;
 	uint64_t mask;
+	uint64_t hidden_mask;
 	unsigned int moves;
 
 	const static uint64_t bottom_mask_full = Bottom(WIDTH, HEIGHT);
