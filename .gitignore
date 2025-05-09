@@ -3,7 +3,7 @@
 *.o
 *.d
 *.txt
-
+.idea/
 .venv/
 .vscode/
 certbot/
@@ -11,5 +11,5 @@ nginx/
 docker-compose.yml
 build/
 draft/
-__pycache__/
+python/
 hard_moves.txt

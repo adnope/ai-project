@@ -2,6 +2,7 @@
 .github/
 .vscode/
 .venv/
+.idea/
 build/
 certbot/
 draft/
