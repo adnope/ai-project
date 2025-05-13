@@ -149,7 +149,7 @@ void startTraining()
 	int move;
 	string player_name;
 	bool is_red_turn;
-	while (1)
+	while (true)
 	{
 		if (P.nbMoves() == 15)
 		{

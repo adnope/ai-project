@@ -5,8 +5,8 @@
 #include "Solver.hpp"
 #include "Position.hpp"
 
-#include <chrono>
 #include <future>
+#include <utility>
 
 using json = nlohmann::json;
 using namespace std;
@@ -19,7 +19,7 @@ private:
     uint16_t port;
     Solver solver;
 
-    void Log(const vector<vector<int>> &board, const int &current_player, const vector<int> &valid_moves, const bool &is_new_game)
+    static void Log(const vector<vector<int>> &board, const int &current_player, const vector<int> &valid_moves, const bool &is_new_game)
     {
         cout << "Board: \n";
         for (const vector<int> &v : board)
@@ -32,27 +32,12 @@ private:
         }
         cout << "Current player: " << current_player << "\n";
         cout << "Valid moves: ";
-        for (int i : valid_moves)
+        for (const int i : valid_moves)
         {
             cout << i << " ";
         }
         cout << "\nIs new game: " << boolalpha << is_new_game << "\n";
     }
-
-    // int GetMoveFromSolver(const vector<vector<int>> &board, const bool &is_new_game, const int &current_player)
-    // {
-    //     if (is_new_game && current_player == 1)
-    //     {
-    //         return solver.GetDefaultFirstMove();
-    //     }
-
-    //     Position P(board);
-    //     int move = solver.FindBestMove(P);
-
-    //     cout << "[Solver] Number of moves: " << P.nbMoves() << ", Best move: " << move + 1 << "\n";
-
-    //     return move;
-    // }
 
     int GetMoveFromSolver(const vector<vector<int>> &board, const bool &is_new_game, const int &current_player, const vector<int> &valid_moves)
     {
@@ -63,16 +48,33 @@ private:
 
         Position P(board);
 
-        // Set up a future to run FindBestMove asynchronously
-        auto future_ranked_moves = std::async(std::launch::async, [&]()
-                                              { return solver.Analyze(P); });
+        packaged_task<vector<vector<int>>(Solver&, const Position&)> task(&Solver::Analyze);
 
-        // Wait for at most 8 seconds
-        if (future_ranked_moves.wait_for(std::chrono::seconds(8)) == std::future_status::ready)
+        future<vector<vector<int>>> analyze_future = task.get_future();
+        thread analyze_thread(move(task), ref(solver), P);
+
+        constexpr int timeout = 6;
+        const chrono::seconds timeout_duration(timeout);
+
+        if (const future_status status = analyze_future.wait_for(timeout_duration); status == future_status::timeout)
         {
-            // We got the result within the time limit
-            std::vector<std::vector<int>> ranked_moves = future_ranked_moves.get();
+            if (analyze_thread.joinable()) {
+                analyze_thread.detach();
+            }
+            random_device rd;
+            mt19937 gen(rd());
+            uniform_int_distribution<> distrib(0, 6);
+            const int random_move = distrib(gen);
 
+            cout << "[Solver] Computation timed out after " << timeout << " seconds. Using random move: " << random_move + 1 << "\n";
+            return random_move;
+        }
+        else if (status == future_status::ready)
+        {
+            const vector<vector<int>> ranked_moves = analyze_future.get();
+            if (analyze_thread.joinable()) {
+                analyze_thread.join();
+            }
             vector<int> move_list = {};
             for (const auto &cols : ranked_moves)
             {
@@ -82,8 +84,8 @@ private:
                 }
             }
 
-            cout << "Moves to make (from best to worst): ";
-            for (int i : move_list) cout << i << " ";
+            cout << "[Solver] Moves to make (from best to worst): ";
+            for (const int i : move_list) cout << i << " ";
             cout << "\n";
 
             int move = -1;
@@ -95,15 +97,15 @@ private:
                     break;
                 }
                 else {
-                    cout << "Best move is invalid, changing to next best move...\n";
+                    cout << "[Solver] Best move is invalid, changing to next best move...\n";
                 }
             }
 
             if (move == -1)
             {
-                std::random_device rd;
-                std::mt19937 gen(rd());
-                std::uniform_int_distribution<> dist(0, valid_moves.size() - 1);
+                random_device rd;
+                mt19937 gen(rd());
+                uniform_int_distribution<> dist(0, static_cast<int>(valid_moves.size()) - 1);
                 move = valid_moves[dist(gen)];
 
                 cout << "[Solver] No valid moves found. Using random move: " << move + 1 << "\n";
@@ -113,20 +115,11 @@ private:
             cout << "[Solver] Number of moves: " << P.nbMoves() << ", Best move: " << move + 1 << "\n";
             return move;
         }
-        else
-        {
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<> distrib(0, 6);
-            int random_move = distrib(gen);
-
-            cout << "[Solver] Computation timed out after 8 seconds. Using random move: " << random_move + 1 << "\n";
-            return random_move;
-        }
+        else return -1;
     }
 
 public:
-    RequestHandler(string ip, uint16_t port) : ip(ip), port(port)
+    RequestHandler(string ip, const uint16_t port) : ip(std::move(ip)), port(port)
     {
         solver.GetReady();
     }
@@ -141,24 +134,24 @@ public:
                     json req_data = json::parse(req.body);
                     cout << "\nNew request: " << req_data.dump() << "\n\n";
 
-                    vector<vector<int>> board = req_data["board"].get<vector<vector<int>>>();
-                    vector<int> valid_moves = req_data["valid_moves"].get<vector<int>>();
-                    int current_player = req_data["current_player"];
-                    bool is_new_game = req_data["is_new_game"];
+                    const vector<vector<int>> board = req_data["board"].get<vector<vector<int>>>();
+                    const vector<int> valid_moves = req_data["valid_moves"].get<vector<int>>();
+                    const int current_player = req_data["current_player"];
+                    const bool is_new_game = req_data["is_new_game"];
 
                     Log(board, current_player, valid_moves, is_new_game);
 
-                    auto start = chrono::high_resolution_clock::now();
+                    const auto start = chrono::high_resolution_clock::now();
 
                     int move = GetMoveFromSolver(board, is_new_game, current_player, valid_moves);
 
-                    json json_response = {
+                    const json json_response = {
                         {"move", move}};
 
                     res.set_content(json_response.dump(), "application/json");
 
-                    auto end = chrono::high_resolution_clock::now();
-                    chrono::duration<double, milli> duration = end - start;
+                    const auto end = chrono::high_resolution_clock::now();
+                    const chrono::duration<double, milli> duration = end - start;
                     cout << "[Solver] Total time: " << duration.count() << " ms.\n";
                     cout.flush();
                 }

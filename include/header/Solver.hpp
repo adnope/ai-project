@@ -10,6 +10,7 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
+#include <thread>
 
 const std::string OPENING_BOOK_PATH = "data/depth_12_scores_7x6.book";
 const std::string WARMUP_BOOK_PATH = "data/warmup.book";
@@ -23,10 +24,10 @@ private:
 	int columnOrder[Position::WIDTH];
 
 	/**
-	 * Reccursively score connect 4 position using negamax variant of alpha-beta algorithm.
+	 * Recursively score connect 4 position using negamax variant of alpha-beta algorithm.
 	 * @param: alpha and beta, the window [alpha, beta] is used to narrow down states whose values are within the window
 	 *
-	 * @return the exact score, an upper or lower bound score depending of the case:
+	 * @return the exact score, an upper or lower bound score depending on the case:
 	 * - if actual score of position <= alpha then actual score <= return value <= alpha
 	 * - if actual score of position >= beta then beta <= return value <= actual score
 	 * - if alpha <= actual score <= beta then return value = actual score
@@ -40,7 +41,7 @@ private:
 
 		uint64_t next = P.PossibleNonLosingMoves();
 		if (next == 0)
-			return -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2; // opponent wins since there are no possbile non-losing move
+			return -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2; // opponent wins since there are no possible non-losing move
 
 		if (P.nbMoves() >= Position::WIDTH * Position::HEIGHT - 2)
 			return 0; // draw game
@@ -159,24 +160,23 @@ public:
 
 	std::vector<std::vector<int>> Analyze(const Position &P)
 	{
-		// Vector of vectors - each subvector contains columns with the same score
-		// Sorted in descending order by score (best scores first)
-		std::vector<std::vector<int>> ranked_moves;
-		std::map<int, std::vector<int>, std::greater<int>> score_to_cols; // Maps scores to columns, sorted in descending order
+		// Simulate a timeout move
+		// std::this_thread::sleep_for(std::chrono::seconds(10));
+		// return {{3}, {1,4}, {0, 6, 2, 5}};
 
-		// Create random engine for shuffling
+		std::vector<std::vector<int>> ranked_moves;
+		std::map<int, std::vector<int>, std::greater<>> score_to_cols;
+
 		std::random_device rd;
 		std::mt19937 g(rd());
 
 		if (P.isEmpty())
 		{
-			// If board is empty, just return the middle column as the best move
 			int middle_col = (Position::WIDTH + 1) / 2 - 1;
 			ranked_moves.push_back({middle_col});
 			return ranked_moves;
 		}
 
-		// First, check for winning moves
 		std::vector<int> winning_cols;
 		for (int col = 0; col < Position::WIDTH; ++col)
 		{
@@ -186,16 +186,13 @@ public:
 			}
 		}
 
-		// If there are winning moves, they have the highest priority
 		if (!winning_cols.empty())
 		{
-			// Shuffle the winning moves
 			std::shuffle(winning_cols.begin(), winning_cols.end(), g);
 			ranked_moves.push_back(winning_cols);
 			return ranked_moves;
 		}
 
-		// Evaluate all possible moves
 		for (int col = 0; col < Position::WIDTH; ++col)
 		{
 			if (P.CanPlay(col))
@@ -204,17 +201,13 @@ public:
 				P2.PlayCol(col);
 				int score = -Solve(P2);
 
-				// Add this column to the map, grouped by score
 				score_to_cols[score].push_back(col);
 			}
 		}
 
-		// Convert the map to our vector of vectors format and shuffle each group
-		// (The map automatically sorts by score in descending order)
 		for (const auto &entry : score_to_cols)
 		{
 			std::vector<int> cols = entry.second;
-			// Shuffle columns with the same score
 			std::shuffle(cols.begin(), cols.end(), g);
 			ranked_moves.push_back(cols);
 		}
