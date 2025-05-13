@@ -97,7 +97,7 @@ public:
 		if (forced_moves)
 		{
 			if (forced_moves & (forced_moves - 1)) // check if there is more than one forced move
-				return 0;						   // the opponnent has two winning moves and you cannot stop him
+				return 0;						   // the opponent has two winning moves and you cannot stop him
 			else
 				possible_mask = forced_moves; // enforce to play the single forced move
 		}
@@ -140,31 +140,31 @@ public:
 		return (mask == 0);
 	}
 
-	Position() : current_position{0}, mask{0}, moves{0} {}
+	Position() : current_position{0}, mask{0}, hidden_mask{0}, moves{0} {}
 
 	Position(const std::vector<std::vector<int>> &board) : current_position{0}, mask{0}, hidden_mask{0}, moves{0}
 	{
-		for (auto v : board) {
-			for (int i : v) {
+		for (const auto& v : board) {
+			for (const int i : v) {
 				if (i == 1 || i == 2) moves++;
 			}
 		}
 
-		int current_player = (moves % 2 == 0) ? 1 : 2;
+		const int current_player = (moves % 2 == 0) ? 1 : 2;
 
-		for (int row = 0; row < int(board.size()); ++row)
+		for (int row = 0; row < static_cast<int>(board.size()); ++row)
 		{
-			for (int col = 0; col < int(board[0].size()); ++col)
+			for (int col = 0; col < static_cast<int>(board[0].size()); ++col)
 			{
 				if (board[row][col] == 1 || board[row][col] == 2)
 				{
-					uint64_t move = UINT64_C(1) << (7 * col + 5 - row);
+					const uint64_t move = UINT64_C(1) << (7 * col + 5 - row);
 					mask |= move;
 					if (board[row][col] == current_player) current_position |= move;
 				}
 				if (board[row][col] == -1)
 				{
-					uint64_t hidden_move = UINT64_C(1) << (7 * col + 5 - row);
+					const uint64_t hidden_move = UINT64_C(1) << (7 * col + 5 - row);
 					hidden_mask |= hidden_move;
 				}
 			}
@@ -180,13 +180,13 @@ private:
 	const static uint64_t bottom_mask_full = Bottom(WIDTH, HEIGHT);
 	const static uint64_t board_mask = bottom_mask_full * ((1LL << HEIGHT) - 1);
 
-	// return a bitmask containg a single 1 corresponding to the top cel of a given column
+	// return a bitmask containing a single 1 corresponding to the top cel of a given column
 	static uint64_t TopMask(int col)
 	{
 		return (UINT64_C(1) << (HEIGHT - 1)) << col * (HEIGHT + 1);
 	}
 
-	// return a bitmask containg a single 1 corresponding to the bottom cell of a given column
+	// return a bitmask containing a single 1 corresponding to the bottom cell of a given column
 	static uint64_t BottomMaskCol(int col)
 	{
 		return UINT64_C(1) << col * (HEIGHT + 1);

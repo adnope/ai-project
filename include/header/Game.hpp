@@ -8,23 +8,23 @@ class Game
 private:
     Solver solver;
 
-    void printConnectFourBoard(const std::string &sequence)
+    static void printConnectFourBoard(const std::string &sequence)
     {
-        const int ROWS = Position::HEIGHT;
-        const int COLS = Position::WIDTH;
+        constexpr int ROWS = Position::HEIGHT;
+        constexpr int COLS = Position::WIDTH;
         char board[ROWS][COLS] = {0};
 
-        for (int i = 0; i < ROWS; i++)
+        for (auto & i : board)
         {
-            for (int j = 0; j < COLS; j++)
+            for (char & j : i)
             {
-                board[i][j] = '.';
+                j = '.';
             }
         }
 
         for (size_t i = 0; i < sequence.size(); i++)
         {
-            int col = sequence[i] - '1';
+            const int col = sequence[i] - '1';
             if (col < 0 || col >= COLS)
             {
                 std::cerr << "Invalid column: " << sequence[i] << "\n";
@@ -46,12 +46,12 @@ private:
             board[row][col] = (i % 2 == 0) ? 'x' : 'o';
         }
 
-        for (int i = 0; i < ROWS; i++)
+        for (const auto & i : board)
         {
             std::cout << "|";
-            for (int j = 0; j < COLS; j++)
+            for (const char j : i)
             {
-                std::cout << board[i][j] << "|";
+                std::cout << j << "|";
             }
             std::cout << std::endl;
         }
@@ -72,7 +72,7 @@ public:
 
     void StartPlayerVsBotGame()
     {
-        std::string sequence = "";
+        std::string sequence;
         Position P;
         P.Play(sequence);
 
@@ -105,7 +105,7 @@ public:
         std::cout << "The game has started!\n";
 
         int player_move;
-        while (1)
+        while (true)
         {
             printConnectFourBoard(sequence);
             std::cout << "Enter your move: column: ";
@@ -128,7 +128,7 @@ public:
             sequence += std::to_string(player_move);
             P.PlayCol(player_move - 1);
 
-            int ai_move = solver.FindBestMove(P);
+            const int ai_move = solver.FindBestMove(P);
             if (P.IsWinningMove(ai_move))
             {
                 std::cout << "Bot has played: column " << ai_move + 1 << std::endl;
@@ -149,14 +149,13 @@ public:
                   << "THE GAME HAS STARTED\n"
                   << "<------------------>\n\n";
 
-        std::string sequence = "";
+        std::string sequence;
         Position P;
         P.Play(sequence);
 
-        int move = -1;
-        std::string player_name = "";
+        std::string player_name;
         bool is_red_turn = false;
-        while (1)
+        while (true)
         {
             is_red_turn = (sequence.size() + 1) % 2;
             std::cout << "Moves: " << sequence.size() << "\n";
@@ -170,7 +169,7 @@ public:
             std::cout << player_name << " is thinking...\n";
 
             auto start = std::chrono::high_resolution_clock::now();
-            move = solver.FindBestMove(P);
+            const int move = solver.FindBestMove(P);
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double, std::milli> duration = end - start;
 

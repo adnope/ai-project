@@ -11,7 +11,7 @@
 class MoveSorter
 {
 public:
-    void Add(uint64_t move, int score)
+    void Add(const uint64_t move, const int score)
     {
         int pos = size++;
         for (; pos && entries[pos - 1].score > score; --pos)
@@ -47,5 +47,5 @@ private:
     {
         uint64_t move;
         int score;
-    } entries[Position::WIDTH];
+    } entries[Position::WIDTH]{};
 };

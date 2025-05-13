@@ -4,6 +4,7 @@
 #include "lib/argparse.hpp"
 
 #include <unordered_set>
+#include <utility>
 
 using namespace std;
 
@@ -34,11 +35,11 @@ int runTest()
 		else
 		{
 			auto start = chrono::high_resolution_clock::now();
-			unsigned int best_move = solver.FindBestMove(P);
+			const int best_move = solver.FindBestMove(P);
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
 
-			int score = solver.Solve(P);
+			const int score = solver.Solve(P);
 
 			cout << line
 				 << ": " << P.nbMoves() << " moves, "
@@ -74,11 +75,9 @@ void findMoveAndCalculateScore()
 		}
 		else
 		{
-			int score;
-			unsigned int best_move;
 			auto start = chrono::high_resolution_clock::now();
-			score = solver.Solve(P);
-			best_move = solver.FindBestMove(P);
+			const int score = solver.Solve(P);
+			const int best_move = solver.FindBestMove(P);
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
 
@@ -111,11 +110,8 @@ void continuouslyFindMoveAndCalculateScore()
 			current_sequence += line;
 			auto start = chrono::high_resolution_clock::now();
 
-			int score;
-			unsigned int best_move;
-
-			score = solver.Solve(P);
-			best_move = solver.FindBestMove(P);
+			const int score = solver.Solve(P);
+			const unsigned int best_move = solver.FindBestMove(P);
 
 			auto end = chrono::high_resolution_clock::now();
 			chrono::duration<double, milli> duration = end - start;
@@ -192,13 +188,13 @@ void startTraining()
 	}
 }
 
-void handleAPIRequest(string ip, int port)
+void handleAPIRequest(string ip, const int port)
 {
-	RequestHandler requestHandler(ip, port);
+	RequestHandler requestHandler(std::move(ip), port);
 	requestHandler.Run();
 }
 
-int main(int argc, char **argv)
+int main(const int argc, char **argv)
 {
 	argparse::ArgumentParser program("c4ai", "1.0", argparse::default_arguments::help);
 

@@ -16,7 +16,7 @@ private:
 
 	std::vector<Entry> T;
 
-	unsigned int index(uint64_t key) const
+	unsigned int index(const uint64_t key) const
 	{
 		return key % T.size();
 	}
@@ -24,7 +24,7 @@ private:
 public:
 	int collisions = 0;
 
-	TranspositionTable(unsigned int size) : T(size)
+	TranspositionTable(const unsigned int size) : T(size)
 	{
 		assert(size > 0);
 	}
@@ -34,7 +34,7 @@ public:
 		memset(&T[0], 0, T.size() * sizeof(Entry));
 	}
 
-	void Put(uint64_t key, uint8_t val)
+	void Put(const uint64_t key, const uint8_t val)
 	{
 		unsigned int i = index(key);
 		while (T[i].key != 0 && T[i].key != key)
@@ -46,7 +46,7 @@ public:
 		T[i].val = val;
 	}
 
-	uint8_t Get(uint64_t key) const
+	uint8_t Get(const uint64_t key) const
 	{
 		unsigned int i = index(key);
 		while (T[i].key != 0)
@@ -70,6 +70,6 @@ public:
 
 	const uint8_t *GetValues() const
 	{
-		return reinterpret_cast<const uint8_t *>(&T[0].val);
+		return &T[0].val;
 	}
 };
