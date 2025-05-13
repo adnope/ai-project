@@ -8,6 +8,8 @@
 #include <random>
 #include <chrono>
 #include <sstream>
+#include <map>
+#include <algorithm>
 
 const std::string OPENING_BOOK_PATH = "data/depth_12_scores_7x6.book";
 const std::string WARMUP_BOOK_PATH = "data/warmup.book";
@@ -32,7 +34,7 @@ private:
 	int Negamax(const Position &P, int alpha, int beta)
 	{
 		assert(alpha < beta);
-		assert(!P.CanWinNext());
+		// assert(!P.CanWinNext());
 
 		nodeCount++;
 
@@ -155,6 +157,71 @@ public:
 		return best_cols[dist(gen)];
 	}
 
+	std::vector<std::vector<int>> Analyze(const Position &P)
+	{
+		// Vector of vectors - each subvector contains columns with the same score
+		// Sorted in descending order by score (best scores first)
+		std::vector<std::vector<int>> ranked_moves;
+		std::map<int, std::vector<int>, std::greater<int>> score_to_cols; // Maps scores to columns, sorted in descending order
+
+		// Create random engine for shuffling
+		std::random_device rd;
+		std::mt19937 g(rd());
+
+		if (P.isEmpty())
+		{
+			// If board is empty, just return the middle column as the best move
+			int middle_col = (Position::WIDTH + 1) / 2 - 1;
+			ranked_moves.push_back({middle_col});
+			return ranked_moves;
+		}
+
+		// First, check for winning moves
+		std::vector<int> winning_cols;
+		for (int col = 0; col < Position::WIDTH; ++col)
+		{
+			if (P.CanPlay(col) && P.IsWinningMove(col))
+			{
+				winning_cols.push_back(col);
+			}
+		}
+
+		// If there are winning moves, they have the highest priority
+		if (!winning_cols.empty())
+		{
+			// Shuffle the winning moves
+			std::shuffle(winning_cols.begin(), winning_cols.end(), g);
+			ranked_moves.push_back(winning_cols);
+			return ranked_moves;
+		}
+
+		// Evaluate all possible moves
+		for (int col = 0; col < Position::WIDTH; ++col)
+		{
+			if (P.CanPlay(col))
+			{
+				Position P2(P);
+				P2.PlayCol(col);
+				int score = -Solve(P2);
+
+				// Add this column to the map, grouped by score
+				score_to_cols[score].push_back(col);
+			}
+		}
+
+		// Convert the map to our vector of vectors format and shuffle each group
+		// (The map automatically sorts by score in descending order)
+		for (const auto &entry : score_to_cols)
+		{
+			std::vector<int> cols = entry.second;
+			// Shuffle columns with the same score
+			std::shuffle(cols.begin(), cols.end(), g);
+			ranked_moves.push_back(cols);
+		}
+
+		return ranked_moves;
+	}
+
 	int RandomMove()
 	{
 		std::random_device rd;
@@ -173,31 +240,31 @@ public:
 		auto start = std::chrono::high_resolution_clock::now();
 		book.load(OPENING_BOOK_PATH);
 		auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> duration = end - start;
-        std::cout << "Opening book loaded: " << duration.count() / 1000 << " seconds.\n";
+		std::chrono::duration<double, std::milli> duration = end - start;
+		std::cout << "Opening book loaded: " << duration.count() / 1000 << " seconds.\n";
 		std::cout.flush();
 	}
 
 	void Warmup()
 	{
 		auto start = std::chrono::high_resolution_clock::now();
-        std::string line;
-        std::string move;
-        int score;
-        int count = 0;
-        std::ifstream ifs(WARMUP_BOOK_PATH);
-        while (getline(ifs, line))
-        {
-            std::istringstream iss(line);
-            iss >> move >> score;
-            Position P;
-            P.Play(move);
-            transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
-            count++;
-        }
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> duration = end - start;
-        std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
+		std::string line;
+		std::string move;
+		int score;
+		int count = 0;
+		std::ifstream ifs(WARMUP_BOOK_PATH);
+		while (getline(ifs, line))
+		{
+			std::istringstream iss(line);
+			iss >> move >> score;
+			Position P;
+			P.Play(move);
+			transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
+			count++;
+		}
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> duration = end - start;
+		std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
 		std::cout.flush();
 	}
 

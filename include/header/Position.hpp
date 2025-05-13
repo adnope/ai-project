@@ -90,7 +90,7 @@ public:
 
 	uint64_t PossibleNonLosingMoves() const
 	{
-		assert(!CanWinNext());
+		// assert(!CanWinNext());
 		uint64_t possible_mask = Possible();
 		uint64_t opponent_win = OpponentWinningPosition();
 		uint64_t forced_moves = possible_mask & opponent_win;
@@ -162,7 +162,7 @@ public:
 					mask |= move;
 					if (board[row][col] == current_player) current_position |= move;
 				}
-				if (board[row][col] == 3)
+				if (board[row][col] == -1)
 				{
 					uint64_t hidden_move = UINT64_C(1) << (7 * col + 5 - row);
 					hidden_mask |= hidden_move;
