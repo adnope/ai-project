@@ -82,7 +82,7 @@ public:
 	bool OverlapWithHiddenPos(int col)
 	{
 		uint64_t move = (mask + BottomMaskCol(col)) & ColumnMask(col);
-		if (move & hidden_mask == 0) return false;
+		if ((move & hidden_mask) == 0) return false;
 		else return true;
 	}
 
