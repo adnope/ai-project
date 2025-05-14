@@ -10,6 +10,29 @@ constexpr static uint64_t Bottom(int width, int height)
 	return width == 0 ? 0 : Bottom(width - 1, height) | 1LL << (width - 1) * (height + 1);
 }
 
+// Representation of a game state, using 2 main bitmask: mask and current_position
+// Example:
+// board
+// 0  0  0  0  0  0  0
+// 0  0  0  1  0  0  0
+// 0  0  0  2  0  0  0
+// 0  0  1  1  0  0  0
+// 0  0  2  2  0  0  0
+// 0  0  1  1  0  0  0
+// mask
+// 0  0  0  0  0  0  0
+// 0  0  0  1  0  0  0
+// 0  0  0  1  0  0  0
+// 0  0  1  1  0  0  0
+// 0  0  1  1  0  0  0
+// 0  0  1  1  0  0  0
+// current_position
+// 0  0  0  0  0  0  0
+// 0  0  0  1  0  0  0
+// 0  0  0  0  0  0  0
+// 0  0  1  1  0  0  0
+// 0  0  0  0  0  0  0
+// 0  0  1  1  0  0  0
 class Position
 {
 public:
@@ -54,6 +77,13 @@ public:
 	void PlayCol(int col)
 	{
 		Play((mask + BottomMaskCol(col)) & ColumnMask(col));
+	}
+
+	bool OverlapWithHiddenPos(int col)
+	{
+		uint64_t move = (mask + BottomMaskCol(col)) & ColumnMask(col);
+		if (move & hidden_mask == 0) return false;
+		else return true;
 	}
 
 	unsigned int Play(std::string seq)

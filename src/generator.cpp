@@ -19,8 +19,8 @@
  * When you've got the results.txt file, put it into the project's directory, then the AI should run
  * correctly with "make run..."
  * 
- * The repo already has a sample opening book, which is named "depth_11_scores.book", it is the results
- * file after running explore and calculateScore with depth 11.
+ * The repo already has a sample opening book, which is named "data/depth_12_scores_7x6.book", it is the results
+ * file after running explore and calculateScore with depth 13.
  */
 void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &visited,
              int &number_of_explored_moves, const int depth, std::ofstream &explored_moves_stream)

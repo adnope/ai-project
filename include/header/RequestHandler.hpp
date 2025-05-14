@@ -53,7 +53,7 @@ private:
         future<vector<vector<int>>> analyze_future = task.get_future();
         thread analyze_thread(move(task), ref(solver), P);
 
-        constexpr int timeout = 6;
+        constexpr int timeout = 9;
         const chrono::seconds timeout_duration(timeout);
 
         if (const future_status status = analyze_future.wait_for(timeout_duration); status == future_status::timeout)
@@ -91,7 +91,7 @@ private:
             int move = -1;
             for (const int col : move_list)
             {
-                if (find(valid_moves.begin(), valid_moves.end(), col) != valid_moves.end())
+                if (find(valid_moves.begin(), valid_moves.end(), col) != valid_moves.end() && !P.OverlapWithHiddenPos(col))
                 {
                     move = col;
                     break;
