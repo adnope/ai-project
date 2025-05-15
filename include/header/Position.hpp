@@ -33,6 +33,7 @@ constexpr static uint64_t Bottom(int width, int height)
 // 0  0  1  1  0  0  0
 // 0  0  0  0  0  0  0
 // 0  0  1  1  0  0  0
+
 class Position
 {
 public:
@@ -79,7 +80,8 @@ public:
 		Play((mask + BottomMaskCol(col)) & ColumnMask(col));
 	}
 
-	bool OverlapWithHiddenPos(int col)
+	// Check if move in a column is overlapped with the hidden positions
+	bool OverlapWithHiddenPos(int col) const
 	{
 		uint64_t move = (mask + BottomMaskCol(col)) & ColumnMask(col);
 		if ((move & hidden_mask) == 0) return false;
