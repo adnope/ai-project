@@ -3,6 +3,7 @@
 #include "../include/header/OpeningBook.hpp"
 
 #include <unordered_set>
+
 /**
  * How to use the generator to generate an opening book:
  *
@@ -121,8 +122,8 @@ void convertScoreBookToBinary(const char *input_filename, const char *output_fil
 
     std::cout << "Conversion started...\n";
 
-    std::ifstream text_file("data/warmup.book");
-    std::ofstream binary_file("data/warmup_binary.book", std::ios::binary);
+    std::ifstream text_file(input_filename);
+    std::ofstream binary_file(output_filename, std::ios::binary);
     while (getline(text_file, line))
     {
         std::istringstream iss(line);
@@ -190,7 +191,8 @@ int main(int argc, char **argv)
     }
     else if (argc == 4)
     {
-        convertScoreBookToBinary(argv[3], argv[4]);
+        if (strcmp(argv[1], "convert") == 0) convertScoreBookToBinary(argv[2], argv[3]);
+        else std::cout << "Invalid arguments!\n";
     }
 
     return 0;
