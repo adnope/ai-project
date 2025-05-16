@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cassert>
 #include <cstdint>
+#include <unordered_map>
 
 class TranspositionTable
 {
@@ -14,62 +15,57 @@ private:
 		uint8_t val;
 	};
 
-	std::vector<Entry> T;
+	std::unordered_map<uint64_t, uint8_t> opening_table;
+	std::vector<Entry> memoi_table;
 
 	unsigned int index(const uint64_t key) const
 	{
-		return key % T.size();
+		return key % memoi_table.size();
 	}
 
 public:
 	int collisions = 0;
 
-	TranspositionTable(const unsigned int size) : T(size)
+	TranspositionTable(size_t size) : memoi_table(size)
 	{
 		assert(size > 0);
+		opening_table.reserve(10e6);
 	}
 
 	void Reset()
 	{
-		memset(&T[0], 0, T.size() * sizeof(Entry));
+		memset(&memoi_table[0], 0, memoi_table.size() * sizeof(Entry));
 	}
 
 	void Put(const uint64_t key, const uint8_t val)
 	{
 		unsigned int i = index(key);
-		while (T[i].key != 0 && T[i].key != key)
-		{
-			i = (i + 1) % T.size();
-			collisions++;
-		}
-		T[i].key = key;
-		T[i].val = val;
+		memoi_table[i].key = key;
+		memoi_table[i].val = val;
 	}
 
 	uint8_t Get(const uint64_t key) const
 	{
-		unsigned int i = index(key);
-		while (T[i].key != 0)
+		if (opening_table.find(key) != opening_table.end())
 		{
-			if (T[i].key == key)
-				return T[i].val;
-			i = (i + 1) % T.size();
+			return opening_table.at(key);
 		}
-		return 0;
+		unsigned int i = index(key);
+		return memoi_table[i].val;
 	}
 
-	size_t GetSize() const
+	void PutOpeningMove(const uint64_t key, const uint8_t score)
 	{
-		return T.size();
+		opening_table.emplace(key, score);
 	}
 
-	const uint64_t *GetKeys() const
+	size_t GetMemoiTableSize() const
 	{
-		return reinterpret_cast<const uint64_t *>(&T[0]);
+		return memoi_table.size();
 	}
 
-	const uint8_t *GetValues() const
+	size_t GetOpeningTableSize() const
 	{
-		return &T[0].val;
+		return opening_table.size();
 	}
 };

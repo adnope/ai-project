@@ -12,8 +12,8 @@
 #include <algorithm>
 #include <thread>
 
-const std::string OPENING_BOOK_PATH = "data/depth_12_scores_7x6.book";
-const std::string WARMUP_BOOK_PATH = "data/warmup.book";
+const char *OPENING_BOOK_PATH = "data/depth_1-12_binary.book";
+const char *WARMUP_BOOK_PATH = "data/warmup_binary.book";
 
 class Solver
 {
@@ -228,42 +228,24 @@ public:
 		return nodeCount;
 	}
 
-	void LoadBook()
+	void LoadBook(const char* openingbook_path)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
-		book.load(OPENING_BOOK_PATH);
+		book.load(openingbook_path);
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> duration = end - start;
-		std::cout << "Opening book loaded: " << duration.count() / 1000 << " seconds.\n";
+		std::cout << "Opening book: loaded " << transTable.GetOpeningTableSize() << " moves in " << duration.count() / 1000 << " seconds.\n";
 		std::cout.flush();
 	}
 
 	void Warmup()
 	{
-		auto start = std::chrono::high_resolution_clock::now();
-		std::string line;
-		std::string move;
-		int score;
-		int count = 0;
-		std::ifstream ifs(WARMUP_BOOK_PATH);
-		while (getline(ifs, line))
-		{
-			std::istringstream iss(line);
-			iss >> move >> score;
-			Position P;
-			P.Play(move);
-			transTable.Put(P.Key3(), uint8_t(score - Position::MIN_SCORE + 1));
-			count++;
-		}
-		auto end = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> duration = end - start;
-		std::cout << "Warmup complete: " << duration.count() / 1000 << " seconds.\n";
-		std::cout.flush();
+		LoadBook(WARMUP_BOOK_PATH);
 	}
 
 	void GetReady()
 	{
-		LoadBook();
+		LoadBook(OPENING_BOOK_PATH);
 		Warmup();
 	}
 
@@ -279,7 +261,8 @@ public:
 		transTable.Reset();
 	}
 
-	Solver() : nodeCount{0}, transTable(67108879) // 2^26 entries, ~1GB in RAM
+	// memoization table size: 2^23: 8388617, 2^24: 16777259, 2^25: 33554467, 2^26: 67108879, 2^27: 134217757
+	Solver() : nodeCount{0}, transTable(8388617) // 2^23 entries
 	{
 		Reset();
 		for (int i = 0; i < Position::WIDTH; i++)

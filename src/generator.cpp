@@ -1,6 +1,6 @@
-#include "header/Position.hpp"
-#include "header/Solver.hpp"
-#include "header/OpeningBook.hpp"
+#include "../include/header/Position.hpp"
+#include "../include/header/Solver.hpp"
+#include "../include/header/OpeningBook.hpp"
 
 #include <unordered_set>
 /**
@@ -30,9 +30,8 @@ void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &vis
         return;
 
     int nb_moves = P.nbMoves();
-    if (nb_moves <= depth)
+    if (nb_moves >= 13 && nb_moves <= depth)
     {
-
         explored_moves_stream << pos_str << std::endl;
         number_of_explored_moves++;
     }
@@ -110,45 +109,49 @@ void calculateScore(char *input_file, char *result_file)
     }
 }
 
-void generateOpeningBook(const std::string& book_name) {
-    TranspositionTable* table = new TranspositionTable(268435459);
+void convertScoreBookToBinary(const char *input_filename, const char *output_filename)
+{
+    using key_t = uint64_t;
+    using score_t = uint8_t;
 
-    std::ifstream in(book_name);
-    if (!in) {
-        std::cerr << "Cannot open file: " << book_name << std::endl;
-        return;
-    }
+    std::string line;
+    std::string move_str;
+    int score_raw;
+    long long line_count = 0;
 
-    long long count = 1;
-    for (std::string line; std::getline(in, line); count++) {
-        if (line.empty()) break;
+    std::cout << "Conversion started...\n";
 
+    std::ifstream text_file("data/warmup.book");
+    std::ofstream binary_file("data/warmup_binary.book", std::ios::binary);
+    while (getline(text_file, line))
+    {
         std::istringstream iss(line);
-        std::string pos;
-        int score;
-
-        std::getline(iss, pos, ' ');
-        iss >> score;
-
-        Position P;
-        if (iss.fail() || !iss.eof()
-            || P.Play(pos) != pos.length()
-            || score < Position::MIN_SCORE || score > Position::MAX_SCORE) {
-            std::cerr << "Invalid line (ignored): " << line << std::endl;
+        if (!(iss >> move_str >> score_raw))
+        {
+            std::cerr << "WARNING: skipping invalid line: " << line << "\n";
             continue;
         }
 
-        table->Put(P.Key3(), score - Position::MIN_SCORE + 1);
+        Position P;
+        P.Play(move_str);
+        key_t hashed_move = P.Key3();
+        score_t score = score_raw - Position::MIN_SCORE + 1;
 
-        if (count % 1000000 == 0)
-            std::cerr << "Processed " << count << " lines\n";
+        binary_file.write(reinterpret_cast<const char *>(&hashed_move), sizeof(hashed_move));
+        binary_file.write(reinterpret_cast<const char *>(&score), sizeof(score));
+
+        line_count++;
+        if (line_count % 100000 == 0)
+        {
+            std::cout << line_count << " lines processed\n";
+        }
     }
 
-    OpeningBook book = OpeningBook(table);
+    std::cout << "Conversion complete! Converted " << line_count << " lines.\n";
+    std::cout << "Binary file saved in: " << output_filename << "\n";
 
-    std::ostringstream book_file;
-    book_file << "data/depth_12_scores_7x6.book";
-    book.save(book_file.str());
+    text_file.close();
+    binary_file.close();
 }
 
 int main(int argc, char **argv)
@@ -157,13 +160,12 @@ int main(int argc, char **argv)
     {
         std::cerr << "Please enter arguments\n"
                   << "1. Explore and print moves to a file: enter <depth>\n"
-                  << "2. Calculate score for the moves: enter <input_file> <result_file>"
-                  << "3. Generate opening book: enter book <input_file>\n";
+                  << "2. Calculate score for the moves: enter <input_file> <result_file>\n"
+                  << "3. Convert score book to binary book: enter convert <input_file> <output_file>\n";
         return 1;
     }
     else if (argc == 2)
     {
-        // Explore
         if (atoi(argv[1]) >= 0 && atoi(argv[1]) <= 42)
         {
             std::ofstream moves_explored_stream("data/moves_explored.txt");
@@ -184,17 +186,12 @@ int main(int argc, char **argv)
     }
     else if (argc == 3)
     {
-        if (std::string(argv[1]) == "book") 
-        {
-            std::string book_name = argv[2];
-            generateOpeningBook(book_name);
-        }
-        else  
-        {
-            calculateScore(argv[1], argv[2]);
-        }
+        calculateScore(argv[1], argv[2]);
     }
-    
+    else if (argc == 4)
+    {
+        convertScoreBookToBinary(argv[3], argv[4]);
+    }
 
     return 0;
 }
