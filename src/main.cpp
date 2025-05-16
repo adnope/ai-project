@@ -11,7 +11,7 @@ using namespace std;
 int runTest()
 {
 	Solver solver;
-	ifstream testStream("tests/begin_hard.test");
+	ifstream testStream("tests/10_moves.test");
 
 	if (!testStream)
 	{
