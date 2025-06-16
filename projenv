@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+function build() {
+    if [ ! -d build ]; then
+        mkdir build
+        cmake -B build .
+    fi
+    clean
+    cmake --build build
+}
+
+function clean() {
+    if [ ! -d build ]; then
+        echo "Error: Nothing to clean."
+    else
+        cmake --build build --target clean
+    fi
+}
+
+function run() {
+    if [ ! -f build/main ]; then
+        echo "Error: Build first!"
+    else
+        build/main $1 $2 $3
+    fi
+}
+
+function br() {
+    build
+    run $1 $2 $3
+}

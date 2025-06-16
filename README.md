@@ -12,34 +12,51 @@
 
 ### Prerequisites:
 
-- make
+- cmake
 - g++
 
-### Compile executables (main, generator and warmup_generator):
+### Using project env (Linux only):
 
 ```
-make
-
-Compile executables individually:
-make build/main
-make build/generator
-make build/warmup_generator
+source projenv
+```
+Build executables:
+```
+build
+```
+Clean executables:
+```
+clean
+```
+Run the main executable with arguments:
+```
+run <ARGS>
 ```
 
-### Clean executables:
+### Using cmake:
 
 ```
-make clean
+mkdir build
+cmake -B build .
+cmake --build build
 ```
 
 <a id="launch"></a>
 ## Launch instructions:
 
+Just run the executable in `build/`
+
+If you're on Windows:
 ```
-make run
+.\build\main.exe <ARGS>
+```
+
+Or if you're on Linux:
+```
+./build/main <ARGS>
 ```
 <a id="json-format"></a>
-The default option of the program is a request handler that takes in a POST request (a game state) in the following JSON format, for example:
+If launched without an argument, the program will run at the default mode (argument `-w`), which is a request handler that takes in a POST request (a game state) in the following JSON format, for example:
 
 ```
 {
@@ -65,9 +82,7 @@ And it returns a response in this format (the move calculated):
 }
 ```
 
-Additionally, you can run ```make run ARGS="<arg>"``` to compile and launch the program with diffrent modes (-t, -f, -b, -w,...)
-
-The solver currently has 7 modes:
+Aside from that, the program supports some more options. Here is the list of all the modes as arguments:
 
 - **Default mode: -w, --web**: Run a request handler from a client and returns a response (as stated [above](#json-format)).
 
@@ -81,20 +96,13 @@ The solver currently has 7 modes:
 
 - **Bot versus bot: -b, --botgame**: Create 2 bots and make them play against each other. You could see the board in each move, the moves they make and the time elapsed.
 
-- **Training mode: -tr, --training**: This mode is used for generating the hard moves (moves that take more than 2 seconds) to add to the file ```hard_moves.txt.``` You can then run the ```warmup_generator``` to contribute to the ```warmup.book``` file. This mode basically is a bot game but the board is reset whenever it reaches moves 14 (this can be changed), making it an infinite loop.
+- **Training mode: -tr, --training**: This mode is used for generating the hard moves (moves that take more than 2 seconds) to add to the file ```hard_moves.txt.``` You can then run the ```warmup_generator``` to contribute to the ```warmup.book``` file. Then run the generator to convert this book into binary form, just like the opening book. This mode basically is a bot game but the board is reset whenever it reaches moves 14 (this can be changed), making it an infinite loop.
 
-Alternatively, if you already compiled the solver first using ```make```, you could just run the executable with the corresponding argument. For example:
-
+The program needs the opening book to calculate moves at the early game. There is also a warmup book to store some moves that takes abnormally long to calculate so that the solver can look them up faster, but it is optional. By default the books are generated and saved in `data/`, and you **MUST RUN** the main executable from the project root directory. If you run the executable from anywhere else, or you have your own books to use, specify the path to the book by using the arguments `--opening-book` and `--warmup-book`. For example:
 ```
-If you're on Windows:
-.\build\main.exe
-.\build\main.exe -f
-.\build\main.exe --find
-
-Or if you're on Linux:
-./build/main --play
-./build/main -t
-./build/main --test
+./main -f --opening-book <path> --warmup-book <path> # Specify both books
+./main -f --opening-book <path> # Specify one book
+./main -f <path> <path> # Opening book first, warmup book second
 ```
 
 <a id="connection"></a>

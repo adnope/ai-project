@@ -1,6 +1,6 @@
-#include "../include/header/Position.hpp"
-#include "../include/header/Solver.hpp"
-#include "../include/header/OpeningBook.hpp"
+#include "Position.hpp"
+#include "Solver.hpp"
+#include "OpeningBook.hpp"
 
 #include <unordered_set>
 
@@ -31,7 +31,7 @@ void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &vis
         return;
 
     int nb_moves = P.nbMoves();
-    if (nb_moves >= 13 && nb_moves <= depth)
+    if (nb_moves <= depth)
     {
         explored_moves_stream << pos_str << std::endl;
         number_of_explored_moves++;
@@ -50,7 +50,7 @@ void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &vis
         }
 }
 
-void calculateScore(char *input_file, char *result_file)
+void calculateScore(const char *input_file,const char *result_file)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -110,7 +110,7 @@ void calculateScore(char *input_file, char *result_file)
     }
 }
 
-void convertScoreBookToBinary(const char *input_filename, const char *output_filename)
+int convertScoreBookToBinary(const char *input_filename, const char *output_filename)
 {
     using key_t = uint64_t;
     using score_t = uint8_t;
@@ -119,8 +119,6 @@ void convertScoreBookToBinary(const char *input_filename, const char *output_fil
     std::string move_str;
     int score_raw;
     long long line_count = 0;
-
-    std::cout << "Conversion started...\n";
 
     std::ifstream text_file(input_filename);
     std::ofstream binary_file(output_filename, std::ios::binary);
@@ -148,51 +146,141 @@ void convertScoreBookToBinary(const char *input_filename, const char *output_fil
         }
     }
 
-    std::cout << "Conversion complete! Converted " << line_count << " lines.\n";
-    std::cout << "Binary file saved in: " << output_filename << "\n";
-
     text_file.close();
     binary_file.close();
+
+    return line_count;
+}
+
+void removeDuplicateLines(const std::string &file_name)
+{
+    std::ifstream input_file(file_name);
+    if (!input_file.is_open())
+        return;
+
+    std::vector<std::string> unique_lines;
+    std::unordered_set<std::string> seen_lines;
+    std::string line;
+
+    while (getline(input_file, line))
+    {
+        if (seen_lines.insert(line).second)
+        {
+            unique_lines.push_back(line);
+        }
+    }
+    input_file.close();
+
+    std::ofstream output_file(file_name, std::ios::trunc);
+    if (!output_file.is_open())
+        return;
+
+    for (const auto &uniqueLine : unique_lines)
+    {
+        output_file << uniqueLine << "\n";
+    }
+    output_file.close();
+}
+
+void generateWarmupBook(const char* hard_moves_file, const char* book_file)
+{
+    std::cout << "Generating warmup book...\n";
+
+    removeDuplicateLines(hard_moves_file);
+    calculateScore(hard_moves_file, "scores.tmp");
+    int warmup_book_num_moves = convertScoreBookToBinary("scores.tmp", book_file);
+
+    std::cout << "Completed generating warmup book for " << warmup_book_num_moves << " hard moves.\n" << "Warmup book saved in: " << book_file << "\n";
+
+    remove("scores.tmp");
 }
 
 int main(int argc, char **argv)
 {
     if (argc < 2)
     {
-        std::cerr << "Please enter arguments\n"
-                  << "1. Explore and print moves to a file: enter <depth>\n"
-                  << "2. Calculate score for the moves: enter <input_file> <result_file>\n"
-                  << "3. Convert score book to binary book: enter convert <input_file> <output_file>\n";
+        std::cout << "Generator: generate opening book & warmup book\n\n"
+
+                  << "Usage:\n"
+                  << "  generator [option] [args]\n\n"
+
+                  << "List of options:\n"
+                  << "  explore <depth> <moves_file>                    explore all possible moves to a depth, store them in moves_file\n"
+                  << "  calculate <moves_file> <scores_file>            calculate the scores of the explored moves, store them in scores_file\n"
+                  << "  convert <scores_file> <book_file>               convert the scores_file to proper binary format aka book_file for the solver to read.\n"
+                  << "  warmup <hard_moves_file> <warmup_book_file>     generate a binary warmup book from hard_moves.txt from the training mode.\n\n"
+
+                  << "Some examples:\n"
+                  << "Generate opening book:\n"
+                  << "  generator explore 9 moves.txt\n"
+                  << "  generator calculate moves.txt scores.txt\n"
+                  << "  generator convert scores.txt opening_binary.book\n"
+                  << "Generate warmup book:\n"
+                  << "  generator warmup hard_moves.txt warmup_binary.book\n";
+
         return 1;
     }
-    else if (argc == 2)
+    if (strcmp(argv[1], "explore") == 0)
     {
-        if (atoi(argv[1]) >= 0 && atoi(argv[1]) <= 42)
+        if (argc != 4)
         {
-            std::ofstream moves_explored_stream("data/moves_explored.txt");
-            std::unordered_set<uint64_t> visited;
-            int number_of_explored_moves = 0;
-
-            int depth = atoi(argv[1]);
-            char pos_str[depth + 1] = {0};
-            explore(Position(), pos_str, visited, number_of_explored_moves, depth, moves_explored_stream);
-            std::cout << "Number of moves: " << number_of_explored_moves;
-            return 0;
-        }
-        else {
-            std::cerr << "Invalid depth!";
+            std::cout << "Invalid number of arguments.\n"
+                      << "Usage: generator explore <depth> <output_file>\n";
             return 1;
         }
+        int depth = atoi(argv[2]);
+        if (depth < 0 || depth > 42) 
+        {
+            std::cout << "Invalid depth, depth must be between 0 and 42.\n";
+            return 1;
+        }
+        std::string output_file_path = argv[3];
 
+        std::ofstream moves_explored_stream(output_file_path);
+        std::unordered_set<uint64_t> visited;
+        int number_of_explored_moves = 0;
+
+        char pos_str[depth + 1] = {0};
+        explore(Position(), pos_str, visited, number_of_explored_moves, depth, moves_explored_stream);
+        std::cout << "Number of moves: " << number_of_explored_moves << "\n";
+        return 0;
     }
-    else if (argc == 3)
+    else if (strcmp(argv[1], "calculate") == 0)
     {
-        calculateScore(argv[1], argv[2]);
+        if (argc != 4)
+        {
+            std::cout << "Invalid number of arguments.\n"
+                      << "Usage: generator calculate <moves_file> <scores_file>\n";
+            return 1;
+        }
+        calculateScore(argv[2], argv[3]);
     }
-    else if (argc == 4)
+    else if (strcmp(argv[1], "convert") == 0)
     {
-        if (strcmp(argv[1], "convert") == 0) convertScoreBookToBinary(argv[2], argv[3]);
-        else std::cout << "Invalid arguments!\n";
+        if (argc != 4)
+        {
+            std::cout << "Invalid number of arguments.\n"
+                      << "Usage: generator convert <scores_file> <book_file>\n";
+            return 1;
+        }
+        std::cout << "Conversion started...\n";
+        int num_moves = convertScoreBookToBinary(argv[2], argv[3]);
+        std::cout << "Complete converting " << num_moves << " moves to binary.\nOpening book saved in: " << argv[3] << "\n";
+    }
+    else if (strcmp(argv[1], "warmup") == 0)
+    {
+        if (argc != 4)
+        {
+            std::cout << "Invalid number of arguments.\n"
+                      << "Usage: generator warmup <hard_moves_file> <warmup_book_file>\n";
+            return 1;
+        }
+        generateWarmupBook(argv[2], argv[3]);
+    }
+    else
+    {
+        std::cout << "Invalid option. List of options are: explore, calculate, convert.\n";
+        return 1;
     }
 
     return 0;

@@ -14,7 +14,7 @@ public:
 
     OpeningBook(TranspositionTable *table) : T(table) {}
 
-    void load(const char* binarybook_name)
+    void load(const std::string binarybook_name)
     {
         std::ifstream binary_file(binarybook_name, std::ios::binary);
 

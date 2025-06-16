@@ -10,10 +10,6 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
-#include <thread>
-
-const char *OPENING_BOOK_PATH = "data/depth_1-12_binary.book";
-const char *WARMUP_BOOK_PATH = "data/warmup_binary.book";
 
 class Solver
 {
@@ -160,10 +156,6 @@ public:
 
 	std::vector<std::vector<int>> Analyze(const Position &P)
 	{
-		// Simulate a timeout move
-		// std::this_thread::sleep_for(std::chrono::seconds(10));
-		// return {{3}, {1,4}, {0, 6, 2, 5}};
-
 		std::vector<std::vector<int>> ranked_moves;
 		std::map<int, std::vector<int>, std::greater<>> score_to_cols;
 
@@ -228,25 +220,33 @@ public:
 		return nodeCount;
 	}
 
-	void LoadBook(const char* openingbook_path)
+	void LoadOpeningBook(const std::string OPENING_BOOK_PATH)
 	{
-		auto start = std::chrono::high_resolution_clock::now();
-		book.load(openingbook_path);
-		auto end = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> duration = end - start;
-		std::cout << "Opening book: loaded " << transTable.GetOpeningTableSize() << " moves in " << duration.count() / 1000 << " seconds.\n";
+		book.load(OPENING_BOOK_PATH);
+	}
+
+	void Warmup(const std::string WARMUP_BOOK_PATH)
+	{
+		book.load(WARMUP_BOOK_PATH);
+	}
+
+	void GetReady(const std::string OPENING_BOOK_PATH, const std::string WARMUP_BOOK_PATH)
+	{
+		auto open_start = std::chrono::high_resolution_clock::now();
+		LoadOpeningBook(OPENING_BOOK_PATH);
+		auto open_end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> open_taken = open_end - open_start;
+		size_t open_num_moves = transTable.GetOpeningTableSize();
+
+		auto warmup_start = std::chrono::high_resolution_clock::now();
+		Warmup(WARMUP_BOOK_PATH);
+		auto warmup_end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> warmup_taken = warmup_end - warmup_start;
+		size_t warmup_num_moves = transTable.GetOpeningTableSize() - open_num_moves;
+
+		std::cout << "Opening book: loaded " << open_num_moves << " moves in " << open_taken.count() / 1000 << " seconds.\n";
+		std::cout << "Warmup book: loaded " << warmup_num_moves << " moves in " << warmup_taken.count() / 1000 << " seconds.\n";
 		std::cout.flush();
-	}
-
-	void Warmup()
-	{
-		LoadBook(WARMUP_BOOK_PATH);
-	}
-
-	void GetReady()
-	{
-		LoadBook(OPENING_BOOK_PATH);
-		Warmup();
 	}
 
 	int GetDefaultFirstMove() const

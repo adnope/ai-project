@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lib/httplib.h"
-#include "lib/json.hpp"
+#include "httplib.h"
+#include "json.hpp"
 #include "Solver.hpp"
 #include "Position.hpp"
 
@@ -15,9 +15,9 @@ class RequestHandler
 {
 private:
     httplib::Server svr;
+    Solver solver;
     string ip;
     uint16_t port;
-    Solver solver;
 
     static void Log(const vector<vector<int>> &board, const int &current_player, const vector<int> &valid_moves, const bool &is_new_game)
     {
@@ -120,9 +120,8 @@ private:
     }
 
 public:
-    RequestHandler(string ip, const uint16_t port) : ip(std::move(ip)), port(port)
+    RequestHandler(Solver solver, string ip, const uint16_t port) : solver(solver), ip(std::move(ip)), port(port)
     {
-        solver.GetReady();
     }
 
     void Run()

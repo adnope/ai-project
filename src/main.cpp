@@ -1,14 +1,15 @@
-#include "header/RequestHandler.hpp"
-#include "header/Solver.hpp"
-#include "header/Game.hpp"
-#include "lib/argparse.hpp"
+#include "argparse.hpp"
+
+#include "RequestHandler.hpp"
+#include "Solver.hpp"
+#include "Game.hpp"
 
 #include <unordered_set>
 #include <utility>
 
 using namespace std;
 
-int runTest()
+int runTest(const string OPENING_BOOK_PATH, const string WARMUP_BOOK_PATH)
 {
 	Solver solver;
 	ifstream testStream("tests/10_moves.test");
@@ -19,7 +20,7 @@ int runTest()
 		return 1;
 	}
 
-	solver.GetReady();
+	solver.GetReady(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);;
 
 	string line;
 	int correct_score;
@@ -59,10 +60,10 @@ int runTest()
 	return 0;
 }
 
-void findMoveAndCalculateScore()
+void findMoveAndCalculateScore(const string OPENING_BOOK_PATH, const string WARMUP_BOOK_PATH)
 {
 	Solver solver;
-	solver.GetReady();
+	solver.GetReady(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);;
 
 	string line;
 	while (getline(cin, line))
@@ -91,10 +92,10 @@ void findMoveAndCalculateScore()
 	}
 }
 
-void continuouslyFindMoveAndCalculateScore()
+void continuouslyFindMoveAndCalculateScore(const string OPENING_BOOK_PATH, const string WARMUP_BOOK_PATH)
 {
 	Solver solver;
-	solver.GetReady();
+	solver.GetReady(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);;
 
 	string current_sequence;
 	Position P;
@@ -125,13 +126,13 @@ void continuouslyFindMoveAndCalculateScore()
 	}
 }
 
-void startTraining()
+void startTraining(const string OPENING_BOOK_PATH, const string WARMUP_BOOK_PATH)
 {
 	ofstream hard_moves_stream("hard_moves.txt");
 	unordered_set<string> seen_lines;
 
 	Solver solver;
-	solver.GetReady();
+	solver.GetReady(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);;
 
 	cout << "\n<------------------>\n"
 		 << "THE GAME HAS STARTED\n"
@@ -188,9 +189,11 @@ void startTraining()
 	}
 }
 
-void handleAPIRequest(string ip, const int port)
+void handleAPIRequest(string ip, const int port, const string OPENING_BOOK_PATH, const string WARMUP_BOOK_PATH)
 {
-	RequestHandler requestHandler(std::move(ip), port);
+	Solver solver;
+	solver.GetReady(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);;
+	RequestHandler requestHandler(solver, move(ip), port);
 	requestHandler.Run();
 }
 
@@ -198,31 +201,72 @@ int main(const int argc, char **argv)
 {
 	argparse::ArgumentParser program("c4ai", "1.0", argparse::default_arguments::help);
 
-	program.add_argument("-f", "--find").help("Find best move for a given sequence").flag();
-	program.add_argument("-c", "--cfind").help("Continuously find best move as the user inputs").flag();
-	program.add_argument("-t", "--test").help("Run the tests").flag();
-	program.add_argument("-p", "--play").help("Play a game with our bot").flag();
-	program.add_argument("-b", "--botgame").help("See a match between 2 bots").flag();
-	program.add_argument("-tr", "--train").help("Perform a training session to find hard moves").flag();
-	program.add_argument("-w", "--web").help("Handle API requests").flag();
+	program.add_argument("-f", "--find")
+		.help("Find best move for a given sequence")
+		.flag();
+	program.add_argument("-c", "--cfind")
+		.help("Continuously find best move as the user inputs")
+		.flag();
+	program.add_argument("-t", "--test")
+		.help("Run the tests")
+		.flag();
+	program.add_argument("-p", "--play")
+		.help("Play a game with our bot")
+		.flag();
+	program.add_argument("-b", "--botgame")
+		.help("See a match between 2 bots")
+		.flag();
+	program.add_argument("-tr", "--train")
+		.help("Perform a training session to find hard moves")
+		.flag();
+	program.add_argument("-w", "--web")
+		.help("Handle API requests")
+		.flag();
 
-	program.add_description("Connect four AI by Tralalero Tralala");
+	// Named arguments (optional)
+	program.add_argument("--opening-book")
+		.help("Path to the opening book file")
+		.default_value(string("data/depth_1-12_binary.book"));
+
+	program.add_argument("--warmup-book")
+		.help("Path to the warmup book file")
+		.default_value(string("data/warmup_binary.book"));
+
+	// Positional args (optional fallback)
+	program.add_argument("opening_positional")
+		.help("Positional opening book path")
+		.nargs(0, 1);  // Accepts zero or one
+
+	program.add_argument("warmup_positional")
+		.help("Positional warmup book path")
+		.nargs(0, 1);  // Accepts zero or one
+
+	program.add_description("Connect four solver by adnope");
 
 	try
 	{
 		program.parse_args(argc, argv);
 		if (argc == 1)
 		{
-			std::cout << program;
-			std::exit(0);
+			cout << program;
+			exit(0);
 		}
 	}
-	catch (const std::exception &err)
+	catch (const exception &err)
 	{
-		std::cerr << err.what() << std::endl;
-		std::cerr << program;
-		std::exit(1);
+		cerr << err.what() << endl;
+		cerr << program;
+		exit(1);
 	}
+
+	// Determine final paths
+	string OPENING_BOOK_PATH = program.is_used("opening_positional")
+		? program.get("opening_positional")
+		: program.get("--opening-book");
+
+	string WARMUP_BOOK_PATH = program.is_used("warmup_positional")
+		? program.get("warmup_positional")
+		: program.get("--warmup-book");
 
 	int flag_count = 0;
 
@@ -243,31 +287,35 @@ int main(const int argc, char **argv)
 
 	if (flag_count != 1)
 	{
-		std::cerr << "Error: You must specify exactly one option.\n";
-		std::cerr << program;
-		std::exit(1);
+		cerr << "Error: You must specify exactly one option.\n";
+		cerr << program;
+		exit(1);
 	}
 
 	if (program["-t"] == true)
-		runTest();
+		runTest(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);
 	else if (program["-f"] == true)
-		findMoveAndCalculateScore();
+		findMoveAndCalculateScore(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);
 	else if (program["-c"] == true)
-		continuouslyFindMoveAndCalculateScore();
+		continuouslyFindMoveAndCalculateScore(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);
 	else if (program["-p"] == true)
 	{
-		Game game;
+		Solver solver;
+		solver.GetReady(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);
+		Game game(solver);
 		game.StartPlayerVsBotGame();
 	}
 	else if (program["-b"] == true)
 	{
-		Game game;
+		Solver solver;
+		solver.GetReady(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);
+		Game game(solver);
 		game.StartBotGame();
 	}
 	else if (program["-tr"] == true)
-		startTraining();
+		startTraining(OPENING_BOOK_PATH, WARMUP_BOOK_PATH);
 	else if (program["-w"] == true)
-		handleAPIRequest("0.0.0.0", 8112);
+		handleAPIRequest("0.0.0.0", 8112, OPENING_BOOK_PATH, WARMUP_BOOK_PATH);
 
 	return 0;
 }

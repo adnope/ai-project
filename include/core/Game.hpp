@@ -65,9 +65,8 @@ private:
     }
 
 public:
-    Game()
+    Game(Solver solver) : solver(solver)
     {
-        solver.GetReady();
     }
 
     void StartPlayerVsBotGame()
