@@ -14,9 +14,9 @@ private:
         constexpr int COLS = Position::WIDTH;
         char board[ROWS][COLS] = {0};
 
-        for (auto & i : board)
+        for (auto &i : board)
         {
-            for (char & j : i)
+            for (char &j : i)
             {
                 j = '.';
             }
@@ -46,7 +46,7 @@ private:
             board[row][col] = (i % 2 == 0) ? 'x' : 'o';
         }
 
-        for (const auto & i : board)
+        for (const auto &i : board)
         {
             std::cout << "|";
             for (const char j : i)
@@ -148,13 +148,13 @@ public:
                   << "THE GAME HAS STARTED\n"
                   << "<------------------>\n\n";
 
-        std::string sequence;
+        std::string sequence = "";
         Position P;
-        P.Play(sequence);
 
-        std::string player_name;
+        int move = -1;
+        std::string player_name = "";
         bool is_red_turn = false;
-        while (true)
+        while (1)
         {
             is_red_turn = (sequence.size() + 1) % 2;
             std::cout << "Moves: " << sequence.size() << "\n";
@@ -168,7 +168,7 @@ public:
             std::cout << player_name << " is thinking...\n";
 
             auto start = std::chrono::high_resolution_clock::now();
-            const int move = solver.FindBestMove(P);
+            move = solver.FindBestMove(P);
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double, std::milli> duration = end - start;
 

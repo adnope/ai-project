@@ -31,13 +31,13 @@ private:
 	int Negamax(const Position &P, int alpha, int beta)
 	{
 		assert(alpha < beta);
-		// assert(!P.CanWinNext());
+		assert(!P.CanWinNext());
 
 		nodeCount++;
 
 		uint64_t next = P.PossibleNonLosingMoves();
 		if (next == 0)
-			return -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2; // opponent wins since there are no possible non-losing move
+			return -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2; // opponent wins since there are no possbile non-losing move
 
 		if (P.nbMoves() >= Position::WIDTH * Position::HEIGHT - 2)
 			return 0; // draw game
@@ -88,6 +88,7 @@ private:
 public:
 	TranspositionTable transTable;
 	OpeningBook book = OpeningBook(&transTable);
+	static const int DEFAULT_FIRST_MOVE = 3;
 
 	int Solve(const Position &P)
 	{
@@ -220,17 +221,17 @@ public:
 		return nodeCount;
 	}
 
-	void LoadOpeningBook(const std::string OPENING_BOOK_PATH)
+	void LoadOpeningBook(const std::string &OPENING_BOOK_PATH)
 	{
 		book.load(OPENING_BOOK_PATH);
 	}
 
-	void Warmup(const std::string WARMUP_BOOK_PATH)
+	void Warmup(const std::string &WARMUP_BOOK_PATH)
 	{
 		book.load(WARMUP_BOOK_PATH);
 	}
 
-	void GetReady(const std::string OPENING_BOOK_PATH, const std::string WARMUP_BOOK_PATH)
+	void GetReady(const std::string &OPENING_BOOK_PATH, const std::string &WARMUP_BOOK_PATH)
 	{
 		auto open_start = std::chrono::high_resolution_clock::now();
 		LoadOpeningBook(OPENING_BOOK_PATH);
@@ -249,12 +250,6 @@ public:
 		std::cout.flush();
 	}
 
-	int GetDefaultFirstMove() const
-	{
-		constexpr int DEFAULT_FIRST_MOVE = 3;
-		return DEFAULT_FIRST_MOVE;
-	}
-
 	void Reset()
 	{
 		nodeCount = 0;
@@ -262,7 +257,7 @@ public:
 	}
 
 	// memoization table size: 2^23: 8388617, 2^24: 16777259, 2^25: 33554467, 2^26: 67108879, 2^27: 134217757
-	Solver() : nodeCount{0}, transTable(8388617) // 2^23 entries
+	Solver() : nodeCount{0}, transTable(8388617)
 	{
 		Reset();
 		for (int i = 0; i < Position::WIDTH; i++)

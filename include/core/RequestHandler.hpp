@@ -43,7 +43,7 @@ private:
     {
         if (is_new_game && current_player == 1)
         {
-            return solver.GetDefaultFirstMove();
+            return Solver::DEFAULT_FIRST_MOVE;
         }
 
         Position P(board);
@@ -91,8 +91,7 @@ private:
             int move = -1;
             for (const int col : move_list)
             {
-                if (find(valid_moves.begin(), valid_moves.end(), col) != valid_moves.end() &&
-                    !P.OverlapWithHiddenPos(col))
+                if (find(valid_moves.begin(), valid_moves.end(), col) != valid_moves.end())
                 {
                     move = col;
                     break;

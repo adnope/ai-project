@@ -4,12 +4,8 @@
 .venv/
 .idea/
 build/
-certbot/
 draft/
-nginx/
-tests/
 
 .gitignore
 README.md
 hard_moves.txt
-docker-compose.yml

@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 
+# Source this env to quickly build, clear and run by these aliases
+# Run: source projenv
+
 function build() {
     if [ ! -d build ]; then
         mkdir build
         cmake -B build .
     fi
-    clean
-    cmake --build build
+    if [ -z $1 ]; then
+        clean
+        cmake --build build
+    else
+        clean
+        cmake --build build --target $1
+    fi
+    
 }
 
 function clean() {

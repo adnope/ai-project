@@ -5,38 +5,45 @@
 #include <unordered_set>
 
 /**
- * How to use the generator to generate an opening book:
+ * Instructions:
+ * Generating opening book:
+ *      First, you need to run the explore() function to generate all the moves from a lower depth
+ *      to a higher depth.
+ *      Run: generator explore <lower_depth> <higher_depth> <moves_file>
+ *      The moves then will be saved to moves_file.
  *
- * First, you need to run the explore() function to generate all the moves up to a specific depth,
- * which can be accomplished by running: make generate ARGS="depth" (replace 'depth' with your depth).
- * The moves then will be saved to a file called "moves_explored.txt"
+ *      After that, run the calculateScore() function, which will take your moves file, calculate
+ *      the score of each moves, then save all of the scores to scores_file
+ *      Run: generator calculate <moves_file> <scores_file>
+ *      Note: this step may take a very long time, if you terminate the program while it's running,
+ *      it will continue from where you left, so don't worry :3
  *
- * After that, run the calculateScore() function, which will take your moves file, calculate
- * the score of each moves, then saved all of the scores to an output file (I'll call it results.txt).
- * Run: make generate ARGS="moves_explored.txt results.txt"
- * Note: this step may take a very long time, if you terminate the program while it's running, it
- * will automatically continue from where you left, so don't worry :3
- *
- * When you've got the results.txt file, put it into the project's directory, then the AI should run
- * correctly with "make run..."
- * 
- * The repo already has a sample opening book, which is named "data/depth_12_scores_7x6.book", it is the results
- * file after running explore and calculateScore with depth 13.
+ *      Finally, you need to convert the scores_file to a binary format (called a book) so that the
+ *      solver could read it.
+ *      Run: generator convert <scores_file> <book_file>
+ *      The repo already has a sample opening book, which is named "data/opening.book", it contains
+ *      all moves from depth 1 to depth 12.
+ * Generating warmup book:
+ *      The warmup book essentially is a moves_file with all the hard moves obtained from a training
+ *      session. The function generateWarmupBook() just combines the calculating scores and
+ *      converting steps to outputs a book.
+ *      Run: generator warmup <hard_moves_file> <warmup_book_file>
  */
+
 void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &visited,
-             int &number_of_explored_moves, const int depth, std::ofstream &explored_moves_stream)
+             int &number_of_explored_moves, const int lower_depth, const int higher_depth, std::ofstream &explored_moves_stream)
 {
     uint64_t key = P.Key3();
     if (!visited.insert(key).second)
         return;
 
     int nb_moves = P.nbMoves();
-    if (nb_moves <= depth)
+    if (nb_moves >= lower_depth && nb_moves <= higher_depth)
     {
         explored_moves_stream << pos_str << std::endl;
         number_of_explored_moves++;
     }
-    if (nb_moves > depth)
+    if (nb_moves > higher_depth)
         return;
 
     for (int i = 0; i < Position::WIDTH; i++)
@@ -45,12 +52,12 @@ void explore(const Position &P, char *pos_str, std::unordered_set<uint64_t> &vis
             Position P2(P);
             P2.PlayCol(i);
             pos_str[nb_moves] = '1' + i;
-            explore(P2, pos_str, visited, number_of_explored_moves, depth, explored_moves_stream);
+            explore(P2, pos_str, visited, number_of_explored_moves, lower_depth, higher_depth, explored_moves_stream);
             pos_str[nb_moves] = 0;
         }
 }
 
-void calculateScore(const char *input_file,const char *result_file)
+void calculateScore(const char *input_file, const char *result_file)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -110,48 +117,6 @@ void calculateScore(const char *input_file,const char *result_file)
     }
 }
 
-int convertScoreBookToBinary(const char *input_filename, const char *output_filename)
-{
-    using key_t = uint64_t;
-    using score_t = uint8_t;
-
-    std::string line;
-    std::string move_str;
-    int score_raw;
-    long long line_count = 0;
-
-    std::ifstream text_file(input_filename);
-    std::ofstream binary_file(output_filename, std::ios::binary);
-    while (getline(text_file, line))
-    {
-        std::istringstream iss(line);
-        if (!(iss >> move_str >> score_raw))
-        {
-            std::cerr << "WARNING: skipping invalid line: " << line << "\n";
-            continue;
-        }
-
-        Position P;
-        P.Play(move_str);
-        key_t hashed_move = P.Key3();
-        score_t score = score_raw - Position::MIN_SCORE + 1;
-
-        binary_file.write(reinterpret_cast<const char *>(&hashed_move), sizeof(hashed_move));
-        binary_file.write(reinterpret_cast<const char *>(&score), sizeof(score));
-
-        line_count++;
-        if (line_count % 100000 == 0)
-        {
-            std::cout << line_count << " lines processed\n";
-        }
-    }
-
-    text_file.close();
-    binary_file.close();
-
-    return line_count;
-}
-
 void removeDuplicateLines(const std::string &file_name)
 {
     std::ifstream input_file(file_name);
@@ -182,17 +147,81 @@ void removeDuplicateLines(const std::string &file_name)
     output_file.close();
 }
 
-void generateWarmupBook(const char* hard_moves_file, const char* book_file)
+void calculateHardMoves(const char *hard_moves_file, const char *scores_file)
 {
-    std::cout << "Generating warmup book...\n";
+    std::cout << "Calculating scores for hard moves...\n";
 
     removeDuplicateLines(hard_moves_file);
-    calculateScore(hard_moves_file, "scores.tmp");
-    int warmup_book_num_moves = convertScoreBookToBinary("scores.tmp", book_file);
+    std::ofstream ofs(scores_file, std::ios::app);
+    std::ifstream ifs(hard_moves_file);
 
-    std::cout << "Completed generating warmup book for " << warmup_book_num_moves << " hard moves.\n" << "Warmup book saved in: " << book_file << "\n";
+    Solver solver;
+    std::string line;
+    int count = 0;
+    while (getline(ifs, line))
+    {
+        Position P;
+        P.Play(line);
+        for (int i = 0; i <= 6; ++i)
+        {
+            Position P2(P);
+            if (P2.CanPlay(i))
+            {
+                P2.PlayCol(i);
+                int score = solver.Solve(P2);
+                std::string line2 = line;
+                line2 += std::to_string(i + 1);
+                ofs << line2 << " " << score << "\n";
+                count++;
+            }
+        }
+        ofs.flush();
+    }
 
-    remove("scores.tmp");
+    std::cout << "Completed calculating scores for " << count << " moves.\n";
+}
+
+int convertScoreBookToBinary(const char *input_file, const char *output_file)
+{
+    removeDuplicateLines(input_file);
+    using key_t = uint64_t;
+    using score_t = uint8_t;
+
+    std::string line;
+    std::string move_str;
+    int score_raw;
+    long long line_count = 0;
+
+    std::ifstream text_file(input_file);
+    std::ofstream binary_file(output_file, std::ios::binary);
+    while (getline(text_file, line))
+    {
+        std::istringstream iss(line);
+        if (!(iss >> move_str >> score_raw))
+        {
+            std::cerr << "WARNING: skipping invalid line: " << line << "\n";
+            continue;
+        }
+
+        Position P;
+        P.Play(move_str);
+        key_t hashed_move = P.Key3();
+        score_t score = score_raw - Position::MIN_SCORE + 1;
+
+        binary_file.write(reinterpret_cast<const char *>(&hashed_move), sizeof(hashed_move));
+        binary_file.write(reinterpret_cast<const char *>(&score), sizeof(score));
+
+        line_count++;
+        if (line_count % 100000 == 0)
+        {
+            std::cout << line_count << " lines processed\n";
+        }
+    }
+
+    text_file.close();
+    binary_file.close();
+
+    return line_count;
 }
 
 int main(int argc, char **argv)
@@ -205,43 +234,51 @@ int main(int argc, char **argv)
                   << "  generator [option] [args]\n\n"
 
                   << "List of options:\n"
-                  << "  explore <depth> <moves_file>                    explore all possible moves to a depth, store them in moves_file\n"
-                  << "  calculate <moves_file> <scores_file>            calculate the scores of the explored moves, store them in scores_file\n"
-                  << "  convert <scores_file> <book_file>               convert the scores_file to proper binary format aka book_file for the solver to read.\n"
-                  << "  warmup <hard_moves_file> <warmup_book_file>     generate a binary warmup book from hard_moves.txt from the training mode.\n\n"
+                  << "  explore <lower_depth> <higher_depth> <moves_file>   explore all possible moves from lower_depth to higher_depth, store them in moves_file\n"
+                  << "  calculate <moves_file> <scores_file>                calculate the scores of the explored moves, store them in scores_file\n"
+                  << "  convert <scores_file> <book_file>                   convert the scores_file to proper binary format aka book_file for the solver to read.\n"
+                  << "  warmup <hard_moves_file> <scores_file>              calculate the scores of moves resulting from the moves in hard_moves.txt obtained from the training mode.\n\n"
 
                   << "Some examples:\n"
                   << "Generate opening book:\n"
-                  << "  generator explore 9 moves.txt\n"
+                  << "  generator explore 1 12 moves.txt\n"
                   << "  generator calculate moves.txt scores.txt\n"
                   << "  generator convert scores.txt opening_binary.book\n"
                   << "Generate warmup book:\n"
-                  << "  generator warmup hard_moves.txt warmup_binary.book\n";
+                  << "  generator warmup hard_moves.txt warmup_scores.txt\n"
+                  << "  generator convert warmup_scores.txt warmup.book\n";
 
         return 1;
     }
     if (strcmp(argv[1], "explore") == 0)
     {
-        if (argc != 4)
+        if (argc != 5)
         {
             std::cout << "Invalid number of arguments.\n"
-                      << "Usage: generator explore <depth> <output_file>\n";
+                      << "Usage: generator explore <lower_depth> <higher_depth> <output_file>\n";
             return 1;
         }
-        int depth = atoi(argv[2]);
-        if (depth < 0 || depth > 42) 
+
+        int lower_depth = atoi(argv[2]);
+        int higher_depth = atoi(argv[3]);
+        if (lower_depth < 0 || lower_depth > 42)
         {
-            std::cout << "Invalid depth, depth must be between 0 and 42.\n";
+            std::cout << "Invalid lower_depth, depth must be between 0 and 42.\n";
             return 1;
         }
-        std::string output_file_path = argv[3];
+        if (higher_depth < 0 || higher_depth > 42)
+        {
+            std::cout << "Invalid higher_depth, depth must be between 0 and 42.\n";
+            return 1;
+        }
+        std::string output_file_path = argv[4];
 
         std::ofstream moves_explored_stream(output_file_path);
         std::unordered_set<uint64_t> visited;
         int number_of_explored_moves = 0;
 
-        char pos_str[depth + 1] = {0};
-        explore(Position(), pos_str, visited, number_of_explored_moves, depth, moves_explored_stream);
+        char pos_str[higher_depth + 1] = {0};
+        explore(Position(), pos_str, visited, number_of_explored_moves, lower_depth, higher_depth, moves_explored_stream);
         std::cout << "Number of moves: " << number_of_explored_moves << "\n";
         return 0;
     }
@@ -275,7 +312,7 @@ int main(int argc, char **argv)
                       << "Usage: generator warmup <hard_moves_file> <warmup_book_file>\n";
             return 1;
         }
-        generateWarmupBook(argv[2], argv[3]);
+        calculateHardMoves(argv[2], argv[3]);
     }
     else
     {

@@ -23,8 +23,10 @@ private:
 		return key % memoi_table.size();
 	}
 
+	size_t entries_count = 0;
+	size_t collisions = 0;
+
 public:
-	int collisions = 0;
 
 	TranspositionTable(size_t size) : memoi_table(size)
 	{
@@ -35,28 +37,56 @@ public:
 	void Reset()
 	{
 		memset(&memoi_table[0], 0, memoi_table.size() * sizeof(Entry));
+		entries_count = 0;
+		collisions = 0;
 	}
 
-	void Put(const uint64_t key, const uint8_t val)
+	void Put(uint64_t key, uint8_t val)
 	{
+		if (entries_count >= memoi_table.size() / 2) Reset();
 		unsigned int i = index(key);
-		memoi_table[i].key = key;
+		while (memoi_table[i].key != 0 && memoi_table[i].key != key)
+		{
+			i = (i + 1) % memoi_table.size();
+			collisions++;
+		}
+		if (memoi_table[i].key == 0)
+		{
+			entries_count++;
+		}
 		memoi_table[i].val = val;
+		memoi_table[i].key = key;
 	}
 
-	uint8_t Get(const uint64_t key) const
+	uint8_t Get(uint64_t key) const
 	{
 		if (opening_table.find(key) != opening_table.end())
 		{
 			return opening_table.at(key);
 		}
 		unsigned int i = index(key);
-		return memoi_table[i].val;
+		while (memoi_table[i].key != 0)
+		{
+			if (memoi_table[i].key == key)
+				return memoi_table[i].val;
+			i = (i + 1) % memoi_table.size();
+		}
+		return 0;
 	}
 
 	void PutOpeningMove(const uint64_t key, const uint8_t score)
 	{
 		opening_table.emplace(key, score);
+	}
+
+	size_t GetMemoiEntriesCount() const
+	{
+		return entries_count;
+	}
+
+	size_t GetNumOfCollisions() const
+	{
+		return collisions;
 	}
 
 	size_t GetMemoiTableSize() const

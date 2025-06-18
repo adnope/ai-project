@@ -37,16 +37,14 @@ constexpr static uint64_t Bottom(int width, int height)
 class Position
 {
 public:
-	uint64_t GetMask() const {
+	uint64_t GetMask() const
+	{
 		return mask;
 	}
 
-	uint64_t GetCurrentPosition() const {
+	uint64_t GetCurrentPosition() const
+	{
 		return current_position;
-	}
-
-	uint64_t GetHiddenMask() const {
-		return hidden_mask;
 	}
 
 	static const int WIDTH = 7;
@@ -80,14 +78,6 @@ public:
 		Play((mask + BottomMaskCol(col)) & ColumnMask(col));
 	}
 
-	// Check if move in a column is overlapped with the hidden positions
-	bool OverlapWithHiddenPos(int col) const
-	{
-		uint64_t move = (mask + BottomMaskCol(col)) & ColumnMask(col);
-		if ((move & hidden_mask) == 0) return false;
-		else return true;
-	}
-
 	unsigned int Play(std::string seq)
 	{
 		for (unsigned int i = 0; i < seq.size(); i++)
@@ -115,14 +105,9 @@ public:
 		return moves;
 	}
 
-	uint64_t Key() const
-	{
-		return current_position + mask;
-	}
-
 	uint64_t PossibleNonLosingMoves() const
 	{
-		// assert(!CanWinNext());
+		assert(!CanWinNext());
 		uint64_t possible_mask = Possible();
 		uint64_t opponent_win = OpponentWinningPosition();
 		uint64_t forced_moves = possible_mask & opponent_win;
@@ -172,32 +157,31 @@ public:
 		return (mask == 0);
 	}
 
-	Position() : current_position{0}, mask{0}, hidden_mask{0}, moves{0} {}
+	Position() : current_position{0}, mask{0}, moves{0} {}
 
-	Position(const std::vector<std::vector<int>> &board) : current_position{0}, mask{0}, hidden_mask{0}, moves{0}
+	Position(const std::vector<std::vector<int>> &board) : current_position{0}, mask{0}, moves{0}
 	{
-		for (const auto& v : board) {
-			for (const int i : v) {
-				if (i == 1 || i == 2) moves++;
+		for (const auto &v : board)
+		{
+			for (const int i : v)
+			{
+				if (i == 1 || i == 2)
+					moves++;
 			}
 		}
 
 		const int current_player = (moves % 2 == 0) ? 1 : 2;
 
-		for (int row = 0; row < static_cast<int>(board.size()); ++row)
+		for (size_t row = 0; row < board.size(); ++row)
 		{
-			for (int col = 0; col < static_cast<int>(board[0].size()); ++col)
+			for (size_t col = 0; col < board[0].size(); ++col)
 			{
 				if (board[row][col] == 1 || board[row][col] == 2)
 				{
 					const uint64_t move = UINT64_C(1) << (7 * col + 5 - row);
 					mask |= move;
-					if (board[row][col] == current_player) current_position |= move;
-				}
-				if (board[row][col] == -1)
-				{
-					const uint64_t hidden_move = UINT64_C(1) << (7 * col + 5 - row);
-					hidden_mask |= hidden_move;
+					if (board[row][col] == current_player)
+						current_position |= move;
 				}
 			}
 		}
@@ -206,7 +190,6 @@ public:
 private:
 	uint64_t current_position;
 	uint64_t mask;
-	uint64_t hidden_mask;
 	unsigned int moves;
 
 	const static uint64_t bottom_mask_full = Bottom(WIDTH, HEIGHT);
