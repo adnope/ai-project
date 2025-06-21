@@ -1,5 +1,8 @@
-# Source this env to quickly build, clear and run by these aliases
+# Source this env in windows powershell
+# to quickly build, clear and run by these aliases
 # Run: . .\projenv.ps1
+
+Set-Alias c clear
 
 function build {
     param(
@@ -29,8 +32,8 @@ function clean {
     }
 }
 
-function main {
-    $exePath = "build\main.exe"
+function c4ai {
+    $exePath = "build\src\app\c4ai.exe"
     if (-not (Test-Path $exePath)) {
         Write-Error "Error: '$exePath' not found. Build first!"
     }
@@ -40,7 +43,7 @@ function main {
 }
 
 function generator {
-    $exePath = "build\generator.exe"
+    $exePath = "build\src\tools\generator.exe"
     if (-not (Test-Path $exePath)) {
         Write-Error "Error: '$exePath' not found. Build first!"
     }

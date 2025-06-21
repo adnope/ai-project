@@ -1,0 +1,13 @@
+# Generated from CLion Inspection settings
+---
+Checks: '-*,
+clang-analyzer-*,
+google-*,
+performance-*,
+bugprone-*,
+-bugprone-easily-swappable-parameters,
+modernize-*,
+-modernize-use-trailing-return-type,
+-modernize-use-nodiscard,
+readability-*,
+-readability-identifier-length'
