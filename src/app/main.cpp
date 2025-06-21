@@ -1,19 +1,19 @@
+#include <chrono>
+#include <fstream>
 #include <string>
 #include <unordered_set>
-#include <fstream>
-#include <chrono>
 
+#include "core/Game.hpp"
 #include "core/RequestHandler.hpp"
 #include "core/Solver.hpp"
-#include "core/Game.hpp"
 
 #include "argparse.hpp"
 
-using std::cout;
 using std::cin;
-using std::string;
-using std::ofstream;
+using std::cout;
 using std::ifstream;
+using std::ofstream;
+using std::string;
 using hr_clock = std::chrono::high_resolution_clock;
 using std::chrono::duration;
 
@@ -34,18 +34,16 @@ void findMoveAndCalculateScore(const string &OPENING_BOOK_PATH,
       auto end = hr_clock::now();
       duration<double, std::milli> duration = end - start;
 
-      cout << line
-          << ": " << P.NumMoves() << " moves, "
-          << "Score: " << score
-          << ", Nodes: " << solver.GetNodeCount()
-          << ", Time: " << duration.count() << " ms"
-          << ", Best move: column " << best_move + 1 << "\n";
+      cout << line << ": " << P.NumMoves() << " moves, "
+           << "Score: " << score << ", Nodes: " << solver.GetNodeCount()
+           << ", Time: " << duration.count() << " ms"
+           << ", Best move: column " << best_move + 1 << "\n";
     }
   }
 }
 
 void startTraining(const string &OPENING_BOOK_PATH,
-                                const string &WARMUP_BOOK_PATH) {
+                   const string &WARMUP_BOOK_PATH) {
   ofstream hard_moves_stream("hard_moves.txt");
   std::unordered_set<string> seen_lines;
 
@@ -68,7 +66,8 @@ void startTraining(const string &OPENING_BOOK_PATH,
       P.Play(sequence);
     }
 
-    // cout << "Position: " << sequence << ", " << sequence.size() << " moves\n";
+    // cout << "Position: " << sequence << ", " << sequence.size() << "
+    // moves\n";
 
     // bool is_red_turn = (sequence.size() + 1) % 2;
     // string player_name;
@@ -88,10 +87,10 @@ void startTraining(const string &OPENING_BOOK_PATH,
     duration<double, std::milli> duration = end - start;
 
     constexpr int TIMEOUT = 2000;
-    if (duration.count() >= TIMEOUT && seen_lines.find(sequence) == seen_lines.
-        end()) {
-      cout << "HARD MOVE FOUND: " << sequence << ", " << duration.count() <<
-          " ms.\n";
+    if (duration.count() >= TIMEOUT &&
+        seen_lines.find(sequence) == seen_lines.end()) {
+      cout << "HARD MOVE FOUND: " << sequence << ", " << duration.count()
+           << " ms.\n";
       seen_lines.insert(sequence);
       hard_moves_stream << sequence << "\n";
       hard_moves_stream.flush();
@@ -117,9 +116,8 @@ int main(const int argc, char **argv) {
   argparse::ArgumentParser program("c4ai", "1.0",
                                    argparse::default_arguments::help);
 
-  const std::vector<string> modes = {
-    "find", "play", "botgame", "training", "server"
-  };
+  const std::vector<string> modes = {"find", "play", "botgame", "training",
+                                     "server"};
 
   program.add_argument("mode")
       .help("Mode to run (find, play, botgame, training, server)")
@@ -145,8 +143,7 @@ int main(const int argc, char **argv) {
   try {
     program.parse_args(argc, argv);
   } catch (const std::runtime_error &err) {
-    cout << err.what() << "\n\n"
-        << program << '\n';
+    cout << err.what() << "\n\n" << program << '\n';
     return 1;
   }
 
@@ -156,19 +153,23 @@ int main(const int argc, char **argv) {
 
   if (mode == modes[0]) {
     findMoveAndCalculateScore(opening_book, warmup_book);
-  } else if (mode == modes[1]) {
+  }
+  if (mode == modes[1]) {
     Solver solver;
     solver.GetReady(opening_book, warmup_book);
     Game game(solver);
     game.StartPlayerVsBotGame();
-  } else if (mode == modes[2]) {
+  }
+  if (mode == modes[2]) {
     Solver solver;
     solver.GetReady(opening_book, warmup_book);
     Game game(solver);
     game.StartBotGame();
-  } else if (mode == modes[3]) {
+  }
+  if (mode == modes[3]) {
     startTraining(opening_book, warmup_book);
-  } else if (mode == modes[4]) {
+  }
+  if (mode == modes[4]) {
     Solver solver;
     solver.GetReady(opening_book, warmup_book);
     constexpr int port = 8112;

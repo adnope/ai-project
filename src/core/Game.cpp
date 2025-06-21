@@ -2,16 +2,16 @@
 
 #include <chrono>
 #include <iostream>
-#include <vector>
 #include <string>
+#include <vector>
 
 void Game::printConnectFourBoard(const std::string &sequence) {
   constexpr int ROWS = Position::HEIGHT;
   constexpr int COLS = Position::WIDTH;
   std::vector board(ROWS, std::vector<char>(COLS, 0));
 
-  for (auto &v: board) {
-    for (char &c: v) {
+  for (auto &v : board) {
+    for (char &c : v) {
       c = '.';
     }
   }
@@ -36,9 +36,9 @@ void Game::printConnectFourBoard(const std::string &sequence) {
     board[row][col] = (i % 2 == 0) ? 'x' : 'o';
   }
 
-  for (const auto &i: board) {
+  for (const auto &i : board) {
     std::cout << "|";
-    for (const char j: i) {
+    for (const char j : i) {
       std::cout << j << "|";
     }
     std::cout << '\n';
@@ -57,9 +57,9 @@ void Game::StartPlayerVsBotGame() {
   P.Play(sequence);
 
   std::cout << "Choose your side:\n"
-      << "[1]: Red\n"
-      << "[2]: Yellow\n"
-      << "Enter your choice: ";
+            << "[1]: Red\n"
+            << "[2]: Yellow\n"
+            << "Enter your choice: ";
 
   int choice;
   while (std::cin >> choice) {
@@ -73,10 +73,12 @@ void Game::StartPlayerVsBotGame() {
       break;
     }
     std::cout << "Invalid choice\n"
-        << "Enter your choice: ";
+              << "Enter your choice: ";
   }
 
+  std::cout << "=====================\n";
   std::cout << "The game has started!\n";
+  std::cout << "=====================\n";
 
   int player_move;
   while (true) {
@@ -114,9 +116,9 @@ void Game::StartPlayerVsBotGame() {
 }
 
 void Game::StartBotGame() {
-  std::cout << "\n<------------------>\n"
-      << "THE GAME HAS STARTED\n"
-      << "<------------------>\n\n";
+  std::cout << "\n====================\n"
+            << "THE GAME HAS STARTED\n"
+            << "====================\n";
 
   std::string sequence;
   Position P;
@@ -141,8 +143,8 @@ void Game::StartBotGame() {
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = end - start;
 
-    std::cout << player_name << " has played: column " << move + 1 << ", " <<
-        duration.count() << " ms.\n";
+    std::cout << player_name << " has played: column " << move + 1 << ", "
+              << duration.count() << " ms.\n";
 
     if (P.IsWinningMove(move)) {
       sequence += std::to_string(move + 1);

@@ -1,7 +1,5 @@
-# Generated from CLion Inspection settings
 ---
-Checks: '-*,
-clang-analyzer-*,
+Checks: 'clang-analyzer-*,
 google-*,
 performance-*,
 bugprone-*,

@@ -6,8 +6,7 @@
 
 class Game {
 public:
-  explicit Game(Solver solver) : solver(std::move(solver)) {
-  }
+  explicit Game(Solver solver) : solver(std::move(solver)) {}
 
   void StartPlayerVsBotGame();
 

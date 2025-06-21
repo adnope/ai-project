@@ -5,10 +5,10 @@
 #include <string>
 #include <vector>
 
-Position::Position(const std::vector<std::vector<int> > &board)
-  : current_position{0}, mask{0}, num_moves{0} {
-  for (const auto &v: board) {
-    for (const int i: v) {
+Position::Position(const std::vector<std::vector<int>> &board)
+    : current_position{0}, mask{0}, num_moves{0} {
+  for (const auto &v : board) {
+    for (const int i : v) {
       if (i == 1 || i == 2) {
         num_moves++;
       }
@@ -94,8 +94,8 @@ uint64_t Position::ComputeWinningPosition(const uint64_t position,
   uint64_t result = (position << 1) & (position << 2) & (position << 3);
 
   // horizontal
-  uint64_t temp_pos = (position << (HEIGHT + 1)) & (
-                        position << 2 * (HEIGHT + 1));
+  uint64_t temp_pos =
+      (position << (HEIGHT + 1)) & (position << 2 * (HEIGHT + 1));
   result |= temp_pos & (position << 3 * (HEIGHT + 1));
   result |= temp_pos & (position >> (HEIGHT + 1));
   temp_pos = (position >> (HEIGHT + 1)) & (position >> 2 * (HEIGHT + 1));

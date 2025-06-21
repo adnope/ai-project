@@ -7,6 +7,6 @@ add_library(core STATIC
     Solver.cpp
 )
 
-target_include_directories(core PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
-)
+target_link_libraries(core PRIVATE vendor)
+
+target_include_directories(core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

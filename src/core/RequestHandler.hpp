@@ -50,7 +50,7 @@ private:
 
     std::future<std::vector<std::vector<int> > > analyze_future = task.
         get_future();
-    std::thread analyze_thread(move(task), std::ref(solver), P);
+    std::thread analyze_thread(std::move(task), std::ref(solver), P);
 
     constexpr int timeout = 7;
     const std::chrono::seconds timeout_duration(timeout);

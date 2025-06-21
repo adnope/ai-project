@@ -7,19 +7,13 @@
 
 constexpr static uint64_t Bottom(const int width, const int height) {
   return width == 0
-           ? 0
-           : Bottom(width - 1, height) | 1LL << (width - 1) * (height + 1);
+             ? 0
+             : Bottom(width - 1, height) | 1LL << (width - 1) * (height + 1);
 }
 
-// Representation of a game state, using 2 main bitmask: mask and current_position
-// Example:
-// board
-// 0  0  0  0  0  0  0
-// 0  0  0  1  0  0  0
-// 0  0  0  2  0  0  0
-// 0  0  1  1  0  0  0
-// 0  0  2  2  0  0  0
-// 0  0  1  1  0  0  0
+// Representation of a game state, using 2 main bitmask: mask and
+// current_position Example: board 0  0  0  0  0  0  0 0  0  0  1  0  0  0 0  0
+// 0  2  0  0  0 0  0  1  1  0  0  0 0  0  2  2  0  0  0 0  0  1  1  0  0  0
 // mask
 // 0  0  0  0  0  0  0
 // 0  0  0  1  0  0  0
@@ -43,13 +37,12 @@ public:
   static constexpr int MAX_SCORE = ((WIDTH * HEIGHT + 1) / 2) - 3;
 
   static_assert(WIDTH * (HEIGHT + 1) <=
-                static_cast<int>(sizeof(uint64_t) * CHAR_BIT),
+                    static_cast<int>(sizeof(uint64_t) * CHAR_BIT),
                 "Board does not fit in 64bits bitboard");
 
-  Position() : current_position{0}, mask{0}, num_moves{0} {
-  }
+  Position() : current_position{0}, mask{0}, num_moves{0} {}
 
-  explicit Position(const std::vector<std::vector<int> > &board);
+  explicit Position(const std::vector<std::vector<int>> &board);
 
   // return a bitmask 1 on all the cells of a given column
   static uint64_t ColumnMask(const int col) {
@@ -64,17 +57,13 @@ public:
 
   unsigned int Play(const std::string &seq);
 
-  bool CanWinNext() const {
-    return (WinningPosition() & Possible()) != 0;
-  }
+  bool CanWinNext() const { return (WinningPosition() & Possible()) != 0; }
 
   bool IsWinningMove(const int col) const {
     return (WinningPosition() & Possible() & ColumnMask(col)) != 0;
   }
 
-  int NumMoves() const {
-    return num_moves;
-  }
+  int NumMoves() const { return num_moves; }
 
   uint64_t PossibleNonLosingMoves() const;
 
@@ -84,17 +73,11 @@ public:
 
   uint64_t Key3() const;
 
-  bool isEmpty() const {
-    return (mask == 0);
-  }
+  bool isEmpty() const { return (mask == 0); }
 
-  uint64_t GetMask() const {
-    return mask;
-  }
+  uint64_t GetMask() const { return mask; }
 
-  uint64_t GetCurrentPosition() const {
-    return current_position;
-  }
+  uint64_t GetCurrentPosition() const { return current_position; }
 
 private:
   static constexpr uint64_t bottom_mask_full = Bottom(WIDTH, HEIGHT);
@@ -123,9 +106,7 @@ private:
     return __builtin_popcountll(num);
   }
 
-  uint64_t Possible() const {
-    return (mask + bottom_mask_full) & board_mask;
-  }
+  uint64_t Possible() const { return (mask + bottom_mask_full) & board_mask; }
 
   uint64_t WinningPosition() const {
     return ComputeWinningPosition(current_position, mask);
