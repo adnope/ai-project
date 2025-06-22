@@ -1,10 +1,9 @@
 add_library(core STATIC
-    OpeningBook.cpp
-    Game.cpp
-    MoveSorter.cpp
-    TranspositionTable.cpp
-    Position.cpp
-    Solver.cpp
+    opening_book.cpp
+    move_sorter.cpp
+    transposition_table.cpp
+    position.cpp
+    solver.cpp
 )
 
 target_link_libraries(core PRIVATE vendor)

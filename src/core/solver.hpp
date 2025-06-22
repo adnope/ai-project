@@ -1,9 +1,10 @@
 #pragma once
 
-#include "TranspositionTable.hpp"
-#include "Position.hpp"
-#include "MoveSorter.hpp"
-#include "OpeningBook.hpp"
+#include <array>
+
+#include "transposition_table.hpp"
+#include "position.hpp"
+#include "opening_book.hpp"
 
 class Solver {
 public:

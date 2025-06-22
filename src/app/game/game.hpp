@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "Solver.hpp"
+#include "core/solver.hpp"
 
 class Game {
 public:

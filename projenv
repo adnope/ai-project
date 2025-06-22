@@ -3,7 +3,7 @@
 # Source this env to quickly build, clear and run by these aliases
 # Run: source projenv
 
-function build() {
+build() {
     if [ ! -d build ]; then
         mkdir build
         cmake -B build .
@@ -12,13 +12,12 @@ function build() {
         clean
         cmake --build build
     else
-        clean
         cmake --build build --target $1
     fi
     
 }
 
-function clean() {
+clean() {
     if [ ! -d build ]; then
         echo "Error: Nothing to clean."
     else
@@ -26,15 +25,20 @@ function clean() {
     fi
 }
 
-function run() {
-    if [ ! -f build/main ]; then
-        echo "Error: Build first!"
+c4ai() {
+    exec_path="build/bin/c4ai"
+    if [ -x $exec_path ]; then
+        $exec_path $1 $2 $3 $4 $5
     else
-        build/main $1 $2 $3
+        echo "Error: '$exec_path' not found. Build first!"
     fi
 }
 
-function br() {
-    build
-    run $1 $2 $3
+generator() {
+    exec_path="build/bin/generator"
+    if [ -x $exec_path ]; then
+        $exec_path $1 $2 $3 $4 $5
+    else
+        echo "Error: '$exec_path' not found. Build first!"
+    fi
 }

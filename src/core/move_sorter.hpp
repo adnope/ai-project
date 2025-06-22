@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "Position.hpp"
+#include "position.hpp"
 
 /**
  * A class to predetermine the best column to explore for the searching

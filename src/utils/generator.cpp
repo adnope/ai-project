@@ -1,6 +1,5 @@
-#include "core/Position.hpp"
-#include "core/Solver.hpp"
-#include "core/OpeningBook.hpp"
+#include "core/position.hpp"
+#include "core/solver.hpp"
 
 #include <iostream>
 #include <chrono>

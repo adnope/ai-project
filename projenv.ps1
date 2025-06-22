@@ -33,7 +33,7 @@ function clean {
 }
 
 function c4ai {
-    $exePath = "build\src\app\c4ai.exe"
+    $exePath = "build\bin\c4ai.exe"
     if (-not (Test-Path $exePath)) {
         Write-Error "Error: '$exePath' not found. Build first!"
     }
@@ -43,7 +43,7 @@ function c4ai {
 }
 
 function generator {
-    $exePath = "build\src\tools\generator.exe"
+    $exePath = "build\bin\generator.exe"
     if (-not (Test-Path $exePath)) {
         Write-Error "Error: '$exePath' not found. Build first!"
     }

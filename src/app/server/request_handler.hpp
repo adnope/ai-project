@@ -1,12 +1,13 @@
 #pragma once
 
-#include "httplib.h"
-#include "json.hpp"
-#include "Solver.hpp"
-#include "Position.hpp"
-
 #include <future>
 #include <utility>
+
+#include "core/solver.hpp"
+#include "core/position.hpp"
+
+#include "httplib.h"
+#include "json.hpp"
 
 using json = nlohmann::json;
 

@@ -1,0 +1,1 @@
+target_sources(c4ai PRIVATE game.cpp)

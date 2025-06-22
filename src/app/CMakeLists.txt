@@ -7,4 +7,8 @@ endif()
 
 target_include_directories(c4ai PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/app
 )
+
+add_subdirectory(game)
+add_subdirectory(server)
