@@ -5,9 +5,16 @@
 #include <chrono>
 #include <cstring>
 #include <fstream>
+#include <istream>
 #include <sstream>
+#include <string>
 #include <unordered_set>
 #include <vector>
+
+using std::string;
+using std::cout;
+using std::ifstream;
+using std::ofstream;
 
 /**
  * Instructions:
@@ -36,11 +43,9 @@
  *      After that, convert scores_file into a binary book just like generating an opening book.
  */
 
-void explore(const Position &P, std::string &pos_str,
-             std::unordered_set<uint64_t> &visited,
-             int &number_of_explored_moves,
-             const int lower_depth, const int higher_depth,
-             std::ofstream &explored_moves_stream) {
+void explore(const Position &P, string &pos_str, std::unordered_set<uint64_t> &visited,
+             int &number_of_explored_moves, const int lower_depth, const int higher_depth,
+             ofstream &explored_moves_stream) {
   const uint64_t key = P.Key3();
   if (!visited.insert(key).second) {
     return;
@@ -73,23 +78,23 @@ void explore(const Position &P, std::string &pos_str,
 void calculateScore(const char *input_file, const char *result_file) {
   auto start = std::chrono::high_resolution_clock::now();
 
-  std::string line;
+  string line;
 
   int lines_done = 0;
-  std::ifstream input(result_file);
+  ifstream input(result_file);
   while (getline(input, line) && !line.empty()) {
     lines_done++;
   }
   input.close();
 
-  std::ifstream moves_file(input_file);
+  ifstream moves_file(input_file);
   if (!moves_file) {
-    std::cerr << "Invalid moves file!";
+    cout << "Invalid moves file!";
     return;
   }
-  std::ofstream moves_with_scores(result_file, std::ios::app);
+  ofstream moves_with_scores(result_file, std::ios::app);
   if (!moves_with_scores) {
-    std::cerr << "Invalid results file!";
+    cout << "Invalid results file!";
     return;
   }
 
@@ -116,7 +121,7 @@ void calculateScore(const char *input_file, const char *result_file) {
 
     double time_elapsed = duration.count();
     if (time_elapsed >= next_time) {
-      std::cout << "Time elapsed: " << duration.count() << " seconds, "
+      cout << "Time elapsed: " << duration.count() << " seconds, "
           << count << " lines processed\n";
       next_time += CHECK_PERIOD;
       moves_with_scores.flush();
@@ -124,15 +129,15 @@ void calculateScore(const char *input_file, const char *result_file) {
   }
 }
 
-void removeDuplicateLines(const std::string &file_name) {
-  std::ifstream input_file(file_name);
+void removeDuplicateLines(const string &file_name) {
+  ifstream input_file(file_name);
   if (!input_file.is_open()) {
     return;
   }
 
-  std::vector<std::string> unique_lines;
-  std::unordered_set<std::string> seen_lines;
-  std::string line;
+  std::vector<string> unique_lines;
+  std::unordered_set<string> seen_lines;
+  string line;
 
   while (getline(input_file, line)) {
     if (seen_lines.insert(line).second) {
@@ -141,7 +146,7 @@ void removeDuplicateLines(const std::string &file_name) {
   }
   input_file.close();
 
-  std::ofstream output_file(file_name, std::ios::trunc);
+  ofstream output_file(file_name, std::ios::trunc);
   if (!output_file.is_open()) {
     return;
   }
@@ -153,14 +158,14 @@ void removeDuplicateLines(const std::string &file_name) {
 }
 
 void calculateHardMoves(const char *hard_moves_file, const char *scores_file) {
-  std::cout << "Calculating scores for hard moves...\n";
+  cout << "Calculating scores for hard moves...\n";
 
   removeDuplicateLines(hard_moves_file);
-  std::ofstream ofs(scores_file, std::ios::app);
-  std::ifstream ifs(hard_moves_file);
+  ofstream ofs(scores_file, std::ios::app);
+  ifstream ifs(hard_moves_file);
 
   Solver solver;
-  std::string line;
+  string line;
   int count = 0;
   while (getline(ifs, line)) {
     Position P;
@@ -170,7 +175,7 @@ void calculateHardMoves(const char *hard_moves_file, const char *scores_file) {
       if (P2.CanPlay(i)) {
         P2.PlayCol(i);
         int score = solver.Solve(P2);
-        std::string line2 = line;
+        string line2 = line;
         line2 += std::to_string(i + 1);
         ofs << line2 << " " << score << "\n";
         count++;
@@ -179,7 +184,7 @@ void calculateHardMoves(const char *hard_moves_file, const char *scores_file) {
     ofs.flush();
   }
 
-  std::cout << "Completed calculating scores for " << count << " moves.\n";
+  cout << "Completed calculating scores for " << count << " moves.\n";
 }
 
 int convertScoreBookToBinary(const char *input_file, const char *output_file) {
@@ -187,17 +192,17 @@ int convertScoreBookToBinary(const char *input_file, const char *output_file) {
   using key_t = uint64_t;
   using score_t = uint8_t;
 
-  std::string line;
-  std::string move_str;
+  string line;
+  string move_str;
   int score_raw;
   int line_count = 0;
 
-  std::ifstream text_file(input_file);
-  std::ofstream binary_file(output_file, std::ios::binary);
+  ifstream text_file(input_file);
+  ofstream binary_file(output_file, std::ios::binary);
   while (getline(text_file, line)) {
     std::istringstream iss(line);
     if (!(iss >> move_str >> score_raw)) {
-      std::cerr << "WARNING: skipping invalid line: " << line << "\n";
+      cout << "WARNING: skipping invalid line: " << line << "\n";
       continue;
     }
 
@@ -214,7 +219,7 @@ int convertScoreBookToBinary(const char *input_file, const char *output_file) {
     line_count++;
     constexpr int CHECK_PERIOD = 100000;
     if (line_count % CHECK_PERIOD == 0) {
-      std::cout << line_count << " lines processed\n";
+      cout << line_count << " lines processed\n";
     }
   }
 
@@ -226,7 +231,7 @@ int convertScoreBookToBinary(const char *input_file, const char *output_file) {
 
 int main(const int argc, char **argv) {
   if (argc < 2) {
-    std::cout << "Generator: obtaining opening book & warmup book\n\n"
+    cout << "Generator: obtaining opening book & warmup book\n\n"
 
         << "Usage:\n"
         << "  generator [option] [args]\n\n"
@@ -254,7 +259,7 @@ int main(const int argc, char **argv) {
   if (std::strcmp(argv[1], "explore") == 0) {
     constexpr int NUM_REQUIRED_ARGS = 5;
     if (argc != NUM_REQUIRED_ARGS) {
-      std::cout << "Invalid number of arguments.\n"
+      cout << "Invalid number of arguments.\n"
           << "Usage: generator explore <lower_depth> <higher_depth> <output_file>\n";
       return 1;
     }
@@ -264,55 +269,55 @@ int main(const int argc, char **argv) {
     constexpr int MIN_DEPTH = 0;
     constexpr int MAX_DEPTH = 42;
     if (lower_depth < MIN_DEPTH || lower_depth > MAX_DEPTH) {
-      std::cout <<
+      cout <<
           "Invalid lower_depth, depth must be between 0 and 42.\n";
       return 1;
     }
     if (higher_depth < MIN_DEPTH || higher_depth > MAX_DEPTH) {
-      std::cout <<
+      cout <<
           "Invalid higher_depth, depth must be between 0 and 42.\n";
       return 1;
     }
-    std::string output_file_path = argv[4];
+    string output_file_path = argv[4];
 
-    std::string pos_str;
+    string pos_str;
     pos_str.reserve(higher_depth + 1);
     int number_of_explored_moves = 0;
     std::unordered_set<uint64_t> visited;
-    std::ofstream moves_explored_stream(output_file_path);
+    ofstream moves_explored_stream(output_file_path);
 
     explore(Position(), pos_str, visited,
             number_of_explored_moves,
             lower_depth, higher_depth,
             moves_explored_stream);
-    std::cout << "Number of moves: " << number_of_explored_moves << "\n";
+    cout << "Number of moves: " << number_of_explored_moves << "\n";
   } else if (strcmp(argv[1], "calculate") == 0) {
     if (argc != 4) {
-      std::cout << "Invalid number of arguments.\n"
+      cout << "Invalid number of arguments.\n"
           << "Usage: generator calculate <moves_file> <scores_file>\n";
       return 1;
     }
     calculateScore(argv[2], argv[3]);
   } else if (strcmp(argv[1], "convert") == 0) {
     if (argc != 4) {
-      std::cout << "Invalid number of arguments.\n"
+      cout << "Invalid number of arguments.\n"
           << "Usage: generator convert <scores_file> <book_file>\n";
       return 1;
     }
-    std::cout << "Conversion started...\n";
+    cout << "Conversion started...\n";
     int num_moves = convertScoreBookToBinary(argv[2], argv[3]);
-    std::cout << "Complete converting " << num_moves <<
+    cout << "Complete converting " << num_moves <<
         " moves to binary.\nOpening book saved in: " << argv[3] <<
         "\n";
   } else if (strcmp(argv[1], "warmup") == 0) {
     if (argc != 4) {
-      std::cout << "Invalid number of arguments.\n"
+      cout << "Invalid number of arguments.\n"
           << "Usage: generator warmup <hard_moves_file> <warmup_book_file>\n";
       return 1;
     }
     calculateHardMoves(argv[2], argv[3]);
   } else {
-    std::cout <<
+    cout <<
         "Invalid option. List of options are: explore, calculate, convert.\n";
     return 1;
   }

@@ -12,16 +12,16 @@
 #include "move_sorter.hpp"
 
 /**
-   * Recursively score connect 4 position using negamax & alpha-beta algorithm.
-   * @param P position to calculate score
-   * @param alpha, beta: alpha and beta, the window [alpha, beta] is used to
-   * narrow down states whose values are within the window
-   * @return the exact score, an upper or lower bound score depending on the
-   * case:
-   * - if actual score <= alpha then actual score <= return value <= alpha
-   * - if actual score >= beta then beta <= return value <= actual score
-   * - if alpha <= actual score <= beta then return value = actual score
-   */
+ * Recursively score connect 4 position using negamax & alpha-beta algorithm.
+ * @param P position to calculate score
+ * @param alpha, beta: alpha and beta, the window [alpha, beta] is used to
+ * narrow down states whose values are within the window
+ * @return the exact score, an upper or lower bound score depending on the
+ * case:
+ * - if actual score <= alpha then actual score <= return value <= alpha
+ * - if actual score >= beta then beta <= return value <= actual score
+ * - if alpha <= actual score <= beta then return value = actual score
+ */
 int Solver::Negamax(const Position &P, int alpha, int beta) {
   assert(alpha < beta);
   assert(!P.CanWinNext());
@@ -41,8 +41,8 @@ int Solver::Negamax(const Position &P, int alpha, int beta) {
 
   // min is used for narrowing down the window (min means the smallest number
   // of moves needed for the opponent to win)
-  const int min = -((Position::WIDTH * Position::HEIGHT) - 2 - P.NumMoves()) /
-                  2;
+  const int min =
+      -((Position::WIDTH * Position::HEIGHT) - 2 - P.NumMoves()) / 2;
   if (alpha < min) {
     alpha = min; // no need to explore nodes whose values smaller than min
     if (alpha >= beta) {
@@ -94,8 +94,7 @@ int Solver::Negamax(const Position &P, int alpha, int beta) {
 
 int Solver::Solve(const Position &P) {
   if (transTable.Get(P.Key3()) != 0) {
-    return static_cast<int>(transTable.Get(P.Key3())) + Position::MIN_SCORE -
-           1;
+    return static_cast<int>(transTable.Get(P.Key3())) + Position::MIN_SCORE - 1;
   }
   if (P.CanWinNext()) {
     // check if win in one move as the Negamax function does not support this
@@ -153,14 +152,13 @@ int Solver::FindBestMove(const Position &P) {
 
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> dist(0, static_cast<int>
-                                       (best_cols.size() - 1));
+  std::uniform_int_distribution<> dist(0, static_cast<int>(best_cols.size() - 1));
   return best_cols[dist(gen)];
 }
 
-std::vector<std::vector<int> > Solver::Analyze(const Position &P) {
-  std::vector<std::vector<int> > ranked_moves;
-  std::map<int, std::vector<int>, std::greater<> > score_to_cols;
+std::vector<std::vector<int>> Solver::Analyze(const Position &P) {
+  std::vector<std::vector<int>> ranked_moves;
+  std::map<int, std::vector<int>, std::greater<>> score_to_cols;
 
   std::random_device rd;
   std::mt19937 g(rd());
@@ -194,7 +192,7 @@ std::vector<std::vector<int> > Solver::Analyze(const Position &P) {
     }
   }
 
-  for (auto &[score, cols]: score_to_cols) {
+  for (auto &[score, cols] : score_to_cols) {
     std::shuffle(cols.begin(), cols.end(), g);
     ranked_moves.push_back(cols);
   }
@@ -222,12 +220,11 @@ void Solver::GetReady(const std::string &OPENING_BOOK_PATH,
   Warmup(WARMUP_BOOK_PATH);
   const auto warmup_end = hr_clock::now();
   const std::chrono::duration<double> warmup_taken = warmup_end - warmup_start;
-  const size_t warmup_num_moves =
-      transTable.GetOpeningTableSize() - open_num_moves;
+  const size_t warmup_num_moves = transTable.GetOpeningTableSize() - open_num_moves;
 
-  std::cout << "Opening book: loaded " << open_num_moves << " moves in " <<
-      open_taken.count() << " seconds.\n";
-  std::cout << "Warmup book: loaded " << warmup_num_moves << " moves in " <<
-      warmup_taken.count() << " seconds.\n";
+  std::cout << "Opening book: loaded " << open_num_moves << " moves in "
+            << open_taken.count() << " seconds.\n";
+  std::cout << "Warmup book: loaded " << warmup_num_moves << " moves in "
+            << warmup_taken.count() << " seconds.\n";
   std::cout.flush();
 }

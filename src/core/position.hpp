@@ -37,8 +37,7 @@ public:
   static constexpr int MIN_SCORE = (-(WIDTH * HEIGHT) / 2) + 3;
   static constexpr int MAX_SCORE = ((WIDTH * HEIGHT + 1) / 2) - 3;
 
-  static_assert(WIDTH * (HEIGHT + 1) <=
-                    static_cast<int>(sizeof(uint64_t) * CHAR_BIT),
+  static_assert(WIDTH * (HEIGHT + 1) <= static_cast<int>(sizeof(uint64_t) * CHAR_BIT),
                 "Board does not fit in 64bits bitboard");
 
   Position() : current_position{0}, mask{0}, num_moves{0} {}

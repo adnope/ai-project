@@ -7,7 +7,7 @@
 
 #include "core/solver.hpp"
 #include "game/game.hpp"
-#include "server/request_handler.hpp"
+// #include "server/request_handler.hpp"
 
 #include <cxxopts.hpp>
 
@@ -37,7 +37,8 @@ void findMoveAndCalculateScore(const string &OPENING_BOOK_PATH,
       duration<double, std::milli> duration = end - start;
 
       cout << line << ": " << P.NumMoves() << " moves, "
-           << "Score: " << score << ", Nodes: " << solver.GetNodeCount()
+           << "Score: " << score
+           << ", Nodes: " << solver.GetNodeCount()
            << ", Time: " << duration.count() << " ms"
            << ", Best move: column " << best_move + 1 << '\n';
     }
@@ -91,8 +92,7 @@ void startTraining(const string &OPENING_BOOK_PATH,
     constexpr int TIMEOUT = 2000;
     if (duration.count() >= TIMEOUT &&
         seen_lines.find(sequence) == seen_lines.end()) {
-      cout << "HARD MOVE FOUND: " << sequence << ", " << duration.count()
-           << " ms.\n";
+      cout << "HARD MOVE FOUND: " << sequence << ", " << duration.count() << " ms.\n";
       seen_lines.insert(sequence);
       hard_moves_stream << sequence << '\n';
       hard_moves_stream.flush();
@@ -234,8 +234,7 @@ int main(const int argc, char **argv) {
   const int botgame_option_count = static_cast<int>(result.count("botgame"));
   const int training_option_count = static_cast<int>(result.count("training"));
 
-  if (find_option_count + play_option_count + botgame_option_count +
-          training_option_count > 1) {
+  if (find_option_count + play_option_count + botgame_option_count + training_option_count > 1) {
     std::cerr << "Specify 1 option only.\n";
     cout << options.help();
     return 1;
