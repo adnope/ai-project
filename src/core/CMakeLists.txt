@@ -5,7 +5,3 @@ add_library(core STATIC
     position.cpp
     solver.cpp
 )
-
-target_link_libraries(core PRIVATE vendor)
-
-target_include_directories(core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

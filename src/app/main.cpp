@@ -7,9 +7,7 @@
 
 #include "core/solver.hpp"
 #include "game/game.hpp"
-// #include "server/request_handler.hpp"
-
-#include <cxxopts.hpp>
+#include "cxxopts.hpp"
 
 using std::cin;
 using std::cout;
